@@ -12,8 +12,7 @@ keep in mind pupetter will be up for the whole time the lib can be consumed, oth
 and deserved to be spanked <!-- unless its their kink -->
 
 lib:
- - get puppeteer: `import { browser } from '@powercord/powerunit'` -- do I return a proxy which wipes close,
- disconnect, and other things they shouldn't call?
+ - get puppeteer's page object: `import { discord } from '@powercord/powerunit'`
  - get data controller: `import { controller } from '@powercord/powerunit'`
 
 data controller:

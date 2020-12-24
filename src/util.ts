@@ -25,34 +25,4 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-const { spawn } = require('child_process');
-const puppeteer = require('puppeteer-core');
-
-const PORT = Math.floor((Math.random() * 20000) + 10000);
-const p = spawn('/opt/discord-canary/DiscordCanary', [ '--multi-instance', `--remote-debugging-port=${PORT}` ]);
-
-async function connectToDiscord (wsEndpoint) {
-  const browser = await puppeteer.connect({ browserWSEndpoint: wsEndpoint });
-
-  let discordPage = null;
-  do {
-    const pages = await browser.pages();
-    discordPage = pages.find(p => p.url().startsWith('https://canary.discord.com'));
-  } while (!discordPage);
-
-  console.log(discordPage)
-  browser.disconnect()
-  p.kill()
-}
-
-function processStdout (line) {
-  line = line.trim();
-  if (line.startsWith('DevTools listening on')) {
-    p.stderr.off('data', processStdout);
-    connectToDiscord(line.slice(22));
-  }
-}
-
-// The devtools listening thing is sent to stderr
-p.stderr.setEncoding('utf8');
-p.stderr.on('data', processStdout);
+export const sleep = (time: number) => new Promise(resolve => setTimeout(resolve, time))

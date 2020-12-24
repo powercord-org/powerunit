@@ -25,34 +25,53 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-const { spawn } = require('child_process');
-const puppeteer = require('puppeteer-core');
+import type { DataStore, DataTypes } from './types'
 
-const PORT = Math.floor((Math.random() * 20000) + 10000);
-const p = spawn('/opt/discord-canary/DiscordCanary', [ '--multi-instance', `--remote-debugging-port=${PORT}` ]);
+// I don't really care about having an efficient datastore here; What matters is storing it and being able to fetch it.
 
-async function connectToDiscord (wsEndpoint) {
-  const browser = await puppeteer.connect({ browserWSEndpoint: wsEndpoint });
-
-  let discordPage = null;
-  do {
-    const pages = await browser.pages();
-    discordPage = pages.find(p => p.url().startsWith('https://canary.discord.com'));
-  } while (!discordPage);
-
-  console.log(discordPage)
-  browser.disconnect()
-  p.kill()
+let idBuffer = 1
+const BASIC_USER = {
+  username: 'powerunit',
+  discriminator: '0001',
+  avatar: null
 }
 
-function processStdout (line) {
-  line = line.trim();
-  if (line.startsWith('DevTools listening on')) {
-    p.stderr.off('data', processStdout);
-    connectToDiscord(line.slice(22));
-  }
+const dataStore: DataStore = {
+  get user () { return dataStore.users.get(0)! },
+  users: new Map([ [ 0, BASIC_USER ] ]),
+  presences: new Map(),
+  relations: new Map(),
+  guilds: new Map(),
+  channels: new Map(),
+  messages: new Map()
 }
 
-// The devtools listening thing is sent to stderr
-p.stderr.setEncoding('utf8');
-p.stderr.on('data', processStdout);
+// todo: get rid of any
+export function push (type: DataTypes, obj: any): number {
+  const id = idBuffer++
+  dataStore[type].set(id, obj)
+  return id
+}
+
+// todo: get rid of any
+export function patch (type: DataTypes, id: number, obj: any): void {
+  if (!dataStore[type].has(id)) throw new RangeError(`ID ${id} not found in collection ${type}`)
+  const item = dataStore[type].get(id)
+  dataStore[type].set(id, Object.assign({}, item, obj))
+}
+
+export function pull (type: DataTypes, id: number): boolean {
+  if (type === 'users' && id === 0) throw new Error('Cannot delete own user (ID 0)')
+  return dataStore[type].delete(id)
+}
+
+export function reset () {
+  idBuffer = 1
+  dataStore.users.clear()
+  dataStore.presences.clear()
+  dataStore.relations.clear()
+  dataStore.guilds.clear()
+  dataStore.channels.clear()
+  dataStore.messages.clear()
+  dataStore.users.set(0, BASIC_USER)
+}

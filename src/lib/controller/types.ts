@@ -25,34 +25,61 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-const { spawn } = require('child_process');
-const puppeteer = require('puppeteer-core');
+export enum PresenceType { ONLINE, IDLE, DND, OFFLINE }
 
-const PORT = Math.floor((Math.random() * 20000) + 10000);
-const p = spawn('/opt/discord-canary/DiscordCanary', [ '--multi-instance', `--remote-debugging-port=${PORT}` ]);
+export enum RelationshipType { NONE, FRIEND, BLOCK }
 
-async function connectToDiscord (wsEndpoint) {
-  const browser = await puppeteer.connect({ browserWSEndpoint: wsEndpoint });
-
-  let discordPage = null;
-  do {
-    const pages = await browser.pages();
-    discordPage = pages.find(p => p.url().startsWith('https://canary.discord.com'));
-  } while (!discordPage);
-
-  console.log(discordPage)
-  browser.disconnect()
-  p.kill()
+export interface User {
+  username: string
+  discriminator: string
+  avatar: string | null
 }
 
-function processStdout (line) {
-  line = line.trim();
-  if (line.startsWith('DevTools listening on')) {
-    p.stderr.off('data', processStdout);
-    connectToDiscord(line.slice(22));
-  }
+export interface Presence {
+  // todo
 }
 
-// The devtools listening thing is sent to stderr
-p.stderr.setEncoding('utf8');
-p.stderr.on('data', processStdout);
+export interface Relationship {
+  of: number
+  userId: number
+  type: RelationshipType
+}
+
+export interface Guild {
+  // todo
+}
+
+export interface BasicChannel {
+  // todo
+}
+
+export interface TextChannel extends BasicChannel {
+  // todo
+}
+
+export interface VoiceChannel extends BasicChannel {
+  // todo
+}
+
+export interface DMChannel extends BasicChannel {
+  // todo
+}
+
+// todo: other channel types?
+export type Channel = TextChannel | VoiceChannel | DMChannel
+
+export interface Message {
+  // todo
+}
+
+export interface DataStore {
+  user: User
+  users: Map<number, User>
+  presences: Map<number, Presence>
+  relations: Map<number, Relationship>
+  guilds: Map<number, Guild>
+  channels: Map<number, Channel>
+  messages: Map<number, Message>
+}
+
+export type DataTypes = Exclude<keyof DataStore, 'user'>

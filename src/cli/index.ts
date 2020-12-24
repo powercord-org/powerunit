@@ -25,34 +25,20 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-const { spawn } = require('child_process');
-const puppeteer = require('puppeteer-core');
+import createServer from './server'
+import createDiscord from './discord'
 
-const PORT = Math.floor((Math.random() * 20000) + 10000);
-const p = spawn('/opt/discord-canary/DiscordCanary', [ '--multi-instance', `--remote-debugging-port=${PORT}` ]);
+(async function () {
+  const server = await createServer()
+  // @ts-expect-error
+  const discord = await createDiscord(server.port)
 
-async function connectToDiscord (wsEndpoint) {
-  const browser = await puppeteer.connect({ browserWSEndpoint: wsEndpoint });
+  console.log('alright')
+  // wait for full load
+  // login as fake user
 
-  let discordPage = null;
-  do {
-    const pages = await browser.pages();
-    discordPage = pages.find(p => p.url().startsWith('https://canary.discord.com'));
-  } while (!discordPage);
+  // RUN UNIT TESTS
 
-  console.log(discordPage)
-  browser.disconnect()
-  p.kill()
-}
-
-function processStdout (line) {
-  line = line.trim();
-  if (line.startsWith('DevTools listening on')) {
-    p.stderr.off('data', processStdout);
-    connectToDiscord(line.slice(22));
-  }
-}
-
-// The devtools listening thing is sent to stderr
-p.stderr.setEncoding('utf8');
-p.stderr.on('data', processStdout);
+  // close Discord
+  // shut down servers
+})()

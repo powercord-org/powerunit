@@ -27,6 +27,6 @@ a new instance of Discord, enable remote debugging, and connect using puppeteer.
 is done!
 
 ## Repo structure
- - `api`: Mock of the Discord API (only has partial and very funky coverage)
- - `cli`: powerunit CLI, see USAGE.md for more details
- - `lib`: Unit testing toolsuite; what the end users have access to
+ - `src/api`: Mock of the Discord API (only has partial and very funky coverage)
+ - `src/cli`: Powerunit CLI, brain of the unit test framework
+ - `src/lib`: Unit testing toolsuite; what the end users have access to
