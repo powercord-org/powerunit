@@ -25,21 +25,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import createServer from './server'
-import createDiscord from './discord'
-import { rmdirRf } from '@util'
+import type WebSocket from 'ws'
 
-(async function () {
-  const server = await createServer()
-  const discord = await createDiscord(server.port)
-  if (discord.tmpFolder) discord.process.once('close', () => void rmdirRf(discord.tmpFolder!))
-
-  // wait for full load
-  // login as fake user
-
-  // RUN UNIT TESTS
-
-  // close Discord
-  // server.close()
-  // discord.process.kill()
-})()
+// @ts-expect-error
+export default function (ws: WebSocket) {}

@@ -25,21 +25,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import createServer from './server'
-import createDiscord from './discord'
-import { rmdirRf } from '@util'
+import type { FastifyInstance } from 'fastify'
 
-(async function () {
-  const server = await createServer()
-  const discord = await createDiscord(server.port)
-  if (discord.tmpFolder) discord.process.once('close', () => void rmdirRf(discord.tmpFolder!))
+import auth from './auth'
+import misc from './misc'
 
-  // wait for full load
-  // login as fake user
-
-  // RUN UNIT TESTS
-
-  // close Discord
-  // server.close()
-  // discord.process.kill()
-})()
+export default async function (fastify: FastifyInstance) {
+  fastify.register(auth, { prefix: '/auth' })
+  fastify.register(misc)
+}

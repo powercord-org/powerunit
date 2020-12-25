@@ -86,7 +86,7 @@ async function getMainWindow (browser: Browser): Promise<Page> {
   return discordPage
 }
 
-export default async function (apiPort: number): Promise<DiscordInstance> {
+export default async function (apiPort: number): Promise<Readonly<DiscordInstance>> {
   const discordExecutable = await findDiscord()
   if (!discordExecutable) throw new Error('Cannot find Discord')
 
@@ -97,13 +97,13 @@ export default async function (apiPort: number): Promise<DiscordInstance> {
     await mkdir(tmpFolder)
   }
 
-  const PORT = Math.floor((Math.random() * 20000) + 10000)
   const discordProcess = spawn(
     discordExecutable,
     [
       '--multi-instance', // Let Discord know we want multiple instances to run on the host computer
-      `--remote-debugging-port=${PORT}`, // Enable Chrome DevTools remote controller for puppeteer
-      `--host-rules=MAP *.discord.gg 127.0.0.1:${apiPort + 1}` // Mock DNS resolution - https://github.com/puppeteer/puppeteer/issues/2974
+      `--remote-debugging-port=${Math.floor((Math.random() * 20000) + 10000)}`, // Enable Chrome DevTools remote controller for puppeteer
+      `--host-rules=MAP *.discord.gg discord.localhost:${apiPort}`, // Mock DNS resolution - https://github.com/puppeteer/puppeteer/issues/2974
+      '--ignore-certificate-errors' // Self-signed certs memes
     ],
     {
       env: {
@@ -120,15 +120,14 @@ export default async function (apiPort: number): Promise<DiscordInstance> {
 
   await page.setRequestInterception(true)
   page.on('request', (request) => {
+    const requestUrl = new URL(request.url())
     if (/^https:\/\/([a-z]+\.)?discord\.com\/api/.test(request.url())) {
-      const requestUrl = new URL(request.url())
-      requestUrl.protocol = 'http:'
+      requestUrl.protocol = 'https:'
       requestUrl.hostname = 'discord.localhost'
       requestUrl.port = String(apiPort)
-      console.log('api', requestUrl.href)
     }
 
-    request.continue()
+    request.continue({ url: requestUrl.href })
   })
 
   await page.setViewport({ width: 1280, height: 720 })

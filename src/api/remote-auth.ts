@@ -25,21 +25,34 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import createServer from './server'
-import createDiscord from './discord'
-import { rmdirRf } from '@util'
+import type WebSocket from 'ws'
 
-(async function () {
-  const server = await createServer()
-  const discord = await createDiscord(server.port)
-  if (discord.tmpFolder) discord.process.once('close', () => void rmdirRf(discord.tmpFolder!))
+import { createPublicKey, publicEncrypt, createHash } from 'crypto'
 
-  // wait for full load
-  // login as fake user
+const YEAR = 365 * 24 * 3600e3
 
-  // RUN UNIT TESTS
+// The implementation just lets the client show a QR
+export default function (ws: WebSocket) {
+  let fingerprint: string = ''
+  ws.on('message', (blob: string) => {
+    const data = JSON.parse(blob)
+    switch (data.op) {
+      case 'init': {
+        const key = Buffer.from(data.encoded_public_key, 'base64')
+        const publicKey = createPublicKey({ key: key, type: 'spki', format: 'der' })
+        const enc = publicEncrypt({ key: publicKey, oaepHash: 'sha256' }, Buffer.from('hey cutie <3')).toString('base64')
+        fingerprint = createHash('sha256').update(key).digest('base64').replace(/=/g, '')
+        ws.send(JSON.stringify({ op: 'nonce_proof', encrypted_nonce: enc }))
+        break
+      }
+      case 'nonce_proof':
+        ws.send(JSON.stringify({ op: 'pending_remote_init', fingerprint: fingerprint }))
+        break
+      case 'heartbeat':
+        ws.send(JSON.stringify({ op: 'heartbeat_ack' }))
+        break
+    }
+  })
 
-  // close Discord
-  // server.close()
-  // discord.process.kill()
-})()
+  ws.send(JSON.stringify({ op: 'hello', timeout_ms: YEAR, heartbeat_interval: 60e3 }))
+}

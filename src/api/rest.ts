@@ -25,34 +25,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-const { spawn } = require('child_process');
-const puppeteer = require('puppeteer-core');
+import type { FastifyInstance } from 'fastify'
 
-const PORT = Math.floor((Math.random() * 20000) + 10000);
-const p = spawn('/opt/discord-canary/DiscordCanary', [ '--multi-instance', `--remote-debugging-port=${PORT}` ]);
+import apiv8 from './v8'
+import status from './status'
 
-async function connectToDiscord (wsEndpoint) {
-  const browser = await puppeteer.connect({ browserWSEndpoint: wsEndpoint });
+export default async function (fastify: FastifyInstance) {
+  fastify.addHook('onRequest', (_, reply, next) => {
+    reply.header('access-control-allow-credentials', 'true')
+    reply.header('access-control-allow-headers', 'Content-Type, Authorization, X-Track, X-Super-Properties, X-Context-Properties, X-Failed-Requests, X-Fingerprint, X-RPC-Proxy, X-Debug-Options, x-client-trace-id, If-None-Match, X-RateLimit-Precision')
+    reply.header('access-control-allow-methods', 'POST, GET, PUT, PATCH, DELETE')
+    reply.header('access-control-allow-origin', '*')
+    next()
+  })
 
-  let discordPage = null;
-  do {
-    const pages = await browser.pages();
-    discordPage = pages.find(p => p.url().startsWith('https://canary.discord.com'));
-  } while (!discordPage);
-
-  console.log(discordPage)
-  browser.disconnect()
-  p.kill()
+  fastify.register(apiv8, { prefix: '/api/v8' })
+  fastify.register(status, { prefix: '/api/v2' })
+  fastify.setNotFoundHandler((_, reply) => void reply.code(404).send({ code: 0, message: '404: Not Found' }))
 }
-
-function processStdout (line) {
-  line = line.trim();
-  if (line.startsWith('DevTools listening on')) {
-    p.stderr.off('data', processStdout);
-    connectToDiscord(line.slice(22));
-  }
-}
-
-// The devtools listening thing is sent to stderr
-p.stderr.setEncoding('utf8');
-p.stderr.on('data', processStdout);

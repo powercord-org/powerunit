@@ -20,7 +20,6 @@
     "paths": {
       "@lib/*": [ "lib/*" ],
       "@api/*": [ "api/*" ],
-      "@config/*": [ "config/*" ],
       "@util": [ "util.ts" ]
     },
 

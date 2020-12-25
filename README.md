@@ -1,5 +1,5 @@
 # Powerunit
-Powercord's unit testing framework. Used by [Powercord](https://powercord.dev) to test things and see if they break
+Powercord's unit testing framework. Used by [Powercord](https://powercord.dev/) to test things and see if they break
 or if they break a lot. Powercord plugin developers can also use powerunit if they want to unit test their plugins, if
 they are as crazy as me.
 
@@ -9,7 +9,7 @@ setting up/tearing down an environment and providing a toolsuite for the tests t
 The test environment is quite heavy and includes:
  - Running Discord using a separate profile, to not pollute your installation;
  - Starting up a mock API server which will be used to mock the app state and make it function without needing to ever
- reach the actual Discord API using [fastify](https://fastify.io/);
+ reach the actual Discord API using [fastify](https://fastify.io/) and [ws](https://github.com/websockets/ws);
  - Connecting to Discord using [puppeteer](https://pptr.dev/);
 
 This means Powerunit will spin up an instance of Discord, an http server, and a websocket server, which is costly
@@ -32,3 +32,4 @@ is done!
  - `src/api`: Mock routes of the Discord API (only has partial and very funky coverage)
  - `src/cli`: Powerunit CLI, brain of the unit test framework
  - `src/lib`: Unit testing toolsuite; what the end users have access to
+ - `cert`: Contains a self-signed certificate, since https is required

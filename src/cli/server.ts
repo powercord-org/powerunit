@@ -25,10 +25,59 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import type { IncomingMessage } from 'http'
+import type { Socket } from 'net'
+
+import { join } from 'path'
+import { readFileSync } from 'fs'
+import { createServer } from 'https'
+import { Server } from 'ws'
+import Fastify from 'fastify'
+
+import gateway from '@api/gateway'
+import remoteAuth from '@api/remote-auth'
+import rest from '@api/rest'
+
 export interface ServerInstance {
   port: number
+  close: () => Promise<unknown>
 }
 
-export default async function (): Promise<ServerInstance> {
-  return { port: 69 }
+export default async function (): Promise<Readonly<ServerInstance>> {
+  const port = Math.floor((Math.random() * 20000) + 10000)
+  const http = createServer({
+    cert: readFileSync(join(__dirname, '..', '..', 'cert', 'server-cert.pem')),
+    key: readFileSync(join(__dirname, '..', '..', 'cert', 'server-key.pem'))
+  })
+
+  const fastify = Fastify({ logger: true, serverFactory: (h) => http.on('request', h) })
+  const gatewayServer = new Server({ noServer: true })
+  const remoteAuthServer = new Server({ noServer: true })
+
+  fastify.register(rest)
+  gatewayServer.on('connection', gateway)
+  remoteAuthServer.on('connection', remoteAuth)
+
+  http.on('upgrade', (request: IncomingMessage, socket: Socket, head: Buffer) => {
+    if (request.headers.host === 'remote-auth-gateway.discord.gg') {
+      remoteAuthServer.handleUpgrade(request, socket, head, ws => remoteAuthServer.emit('connection', ws, request))
+    } else if (request.headers.host === 'gateway.discord.gg') {
+      gatewayServer.handleUpgrade(request, socket, head, ws => gatewayServer.emit('connection', ws, request))
+    } else {
+      socket.destroy()
+    }
+  })
+
+  await fastify.ready()
+  await new Promise<void>((resolve) => http.listen(port, () => void resolve()))
+
+  return {
+    port: port,
+    close: async () => Promise.all([
+      fastify.close(),
+      new Promise((resolve) => gatewayServer.close(resolve)),
+      new Promise((resolve) => remoteAuthServer.close(resolve)),
+      new Promise((resolve) => http.close(resolve))
+    ])
+  }
 }

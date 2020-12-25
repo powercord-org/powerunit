@@ -25,21 +25,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import createServer from './server'
-import createDiscord from './discord'
-import { rmdirRf } from '@util'
+import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 
-(async function () {
-  const server = await createServer()
-  const discord = await createDiscord(server.port)
-  if (discord.tmpFolder) discord.process.once('close', () => void rmdirRf(discord.tmpFolder!))
+function login (_: FastifyRequest, reply: FastifyReply) {
+  const gen = Buffer.from(String(Date.now() - 1420070400000)).toString('base64').replace(/=/g, '')
+  const sig = Buffer.from('hey cutie uwu').toString('base64').replace(/=/g, '')
+  reply.send({ token: `powerunit.${gen}.${sig}`, user_settings: { locale: 'en-GB', theme: 'dark' } })
+}
 
-  // wait for full load
-  // login as fake user
-
-  // RUN UNIT TESTS
-
-  // close Discord
-  // server.close()
-  // discord.process.kill()
-})()
+export default async function (fastify: FastifyInstance) {
+  fastify.post('/login', login)
+  fastify.get('/location-metadata', (_, reply) => void reply.send({ consent_required: true, country_code: 'FR' }))
+}
