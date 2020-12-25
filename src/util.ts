@@ -25,4 +25,25 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import { existsSync } from 'fs'
+import { readdir, lstat, unlink, rmdir } from 'fs/promises'
+
 export const sleep = (time: number) => new Promise(resolve => setTimeout(resolve, time))
+
+export async function rmdirRf (path: string) {
+  if (existsSync(path)) {
+    const files = await readdir(path)
+    await Promise.all(
+      files.map(async (file) => {
+        const curPath = `${path}/${file}`
+        const stat = await lstat(curPath)
+  
+        stat.isDirectory()
+          ? await rmdirRf(curPath)
+          : await unlink(curPath)
+      })
+    )
+
+    await rmdir(path)
+  }
+}

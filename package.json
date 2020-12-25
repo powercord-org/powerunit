@@ -7,7 +7,7 @@
   "author": "Cynthia <cynthia@cynthia.dev>",
   "license": "BSD-3-Clause",
   "scripts": {
-    "try": "node -r ts-node/register -r tsconfig-paths/register src/cli/index.ts"
+    "try": "POWERUNIT_USER_DIR=/tmp/powerunit node -r ts-node/register -r tsconfig-paths/register src/cli/index.ts"
   },
   "dependencies": {
     "fastify": "^3.9.2",

@@ -15,6 +15,8 @@ The test environment is quite heavy and includes:
 This means Powerunit will spin up an instance of Discord, an http server, and a websocket server, which is costly
 in terms of resources. It, obviously, requires having Discord installed on the host machine.
 
+See USAGE.md for more info on how to use this.
+
 ## Why?
 Because it's completely unnecessary but a fun project to work on.
 
@@ -27,6 +29,6 @@ a new instance of Discord, enable remote debugging, and connect using puppeteer.
 is done!
 
 ## Repo structure
- - `src/api`: Mock of the Discord API (only has partial and very funky coverage)
+ - `src/api`: Mock routes of the Discord API (only has partial and very funky coverage)
  - `src/cli`: Powerunit CLI, brain of the unit test framework
  - `src/lib`: Unit testing toolsuite; what the end users have access to

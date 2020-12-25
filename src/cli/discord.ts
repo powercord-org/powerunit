@@ -29,14 +29,28 @@ import type { ChildProcessWithoutNullStreams } from 'child_process'
 import type { Browser, Page } from 'puppeteer-core'
 
 import { URL } from 'url' // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/34960
+import { join } from 'path'
+import { tmpdir } from 'os'
+import { mkdir } from 'fs/promises'
 import { spawn } from 'child_process'
 import puppeteer from 'puppeteer-core'
 import { sleep } from '@util'
 
 export interface DiscordInstance {
+  tmpFolder: string | null
   process: ChildProcessWithoutNullStreams
   browser: Browser
   page: Page
+}
+
+function filterEnv (env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  const res: NodeJS.ProcessEnv = {}
+  for (const key in env) {
+    if (!key.startsWith('POWERUNIT_') && Object.prototype.hasOwnProperty.call(env, key)) {
+      res[key] = env[key]
+    }
+  }
+  return res
 }
 
 async function findDiscord (): Promise<string> {
@@ -76,8 +90,29 @@ export default async function (apiPort: number): Promise<DiscordInstance> {
   const discordExecutable = await findDiscord()
   if (!discordExecutable) throw new Error('Cannot find Discord')
 
+  const envKey = process.platform === 'win32' ? 'APPDATA' : 'XDG_CONFIG_HOME'
+  let tmpFolder = null
+  if (!process.env.POWERUNIT_USER_DIR) {
+    tmpFolder = join(tmpdir(), `powerunit-${Math.random().toString(36).slice(2)}`)
+    await mkdir(tmpFolder)
+  }
+
   const PORT = Math.floor((Math.random() * 20000) + 10000)
-  const discordProcess = spawn(discordExecutable, [ '--multi-instance', `--remote-debugging-port=${PORT}` ])
+  const discordProcess = spawn(
+    discordExecutable,
+    [
+      '--multi-instance', // Let Discord know we want multiple instances to run on the host computer
+      `--remote-debugging-port=${PORT}`, // Enable Chrome DevTools remote controller for puppeteer
+      `--host-rules=MAP *.discord.gg 127.0.0.1:${apiPort + 1}` // Mock DNS resolution - https://github.com/puppeteer/puppeteer/issues/2974
+    ],
+    {
+      env: {
+        ...filterEnv(process.env),
+        [envKey]: (process.env.POWERUNIT_USER_DIR ?? tmpFolder)!, // this cannot be null
+        POWERUNIT: 'true'
+      }
+    }
+  )
 
   const endpoint = await getDevToolsEndpoint(discordProcess)
   const browser = await puppeteer.connect({ browserWSEndpoint: endpoint, defaultViewport: null });
@@ -93,22 +128,13 @@ export default async function (apiPort: number): Promise<DiscordInstance> {
       console.log('api', requestUrl.href)
     }
 
-    if (/^https:\/\/gateway\.discord\.gg/.test(request.url())) {
-      console.log('gateway', request.url())
-    }
-
-    if (/^https:\/\/remote-auth-gateway\.discord\.gg/.test(request.url())) {
-      console.log('RAG', request.url())
-    }
-
-    // match gateway
-    // match RA
     request.continue()
   })
 
   await page.setViewport({ width: 1280, height: 720 })
 
   return {
+    tmpFolder: tmpFolder,
     process: discordProcess,
     browser: browser,
     page: page

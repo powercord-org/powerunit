@@ -27,10 +27,10 @@
 
 import createServer from './server'
 import createDiscord from './discord'
+import { rmdirRf } from '@util'
 
 (async function () {
   const server = await createServer()
-  // @ts-expect-error
   const discord = await createDiscord(server.port)
 
   console.log('alright')
@@ -41,4 +41,8 @@ import createDiscord from './discord'
 
   // close Discord
   // shut down servers
+
+  if (discord.tmpFolder) {
+    await rmdirRf(discord.tmpFolder)
+  }
 })()
