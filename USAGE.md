@@ -1,9 +1,15 @@
 # Usage
-TBD
+**Note**: most of this document is a draft, and things are subject to change.
+
+## Using Powerunit
+### General "rules"
+### For a mod
+### For a plugin
+
+## API Reference
 
 -------
-
-cynthia's draft:
+everything here is even more of a draft than what's above; this is in fact more of my personal notes than a draft
 
 cli: `powerunit <actual cmd>`
  - acts as a 'wrapper': sets things up, runs the unit test command, tear things down, exit

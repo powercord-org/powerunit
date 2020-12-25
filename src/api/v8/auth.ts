@@ -26,14 +26,36 @@
  */
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
+import { read } from '../datastore'
 
 function login (_: FastifyRequest, reply: FastifyReply) {
-  const gen = Buffer.from(String(Date.now() - 1420070400000)).toString('base64').replace(/=/g, '')
-  const sig = Buffer.from('hey cutie uwu').toString('base64').replace(/=/g, '')
-  reply.send({ token: `powerunit.${gen}.${sig}`, user_settings: { locale: 'en-GB', theme: 'dark' } })
+  const user = read('user')
+  reply.code(200).send({
+    token: 'powerunit',
+    user_settings: {
+      locale: user.settings.locale,
+      theme: user.settings.theme
+    }
+  })
+}
+
+function register (_: FastifyRequest, reply: FastifyReply) {
+  reply.code(400).send({
+    code: 50035,
+    message: 'Invalid form body',
+    errors: {
+      email: {
+        _errors: [
+          { code: 'NOT_SUPPORTED', message: 'Registrations are not supported by Powerunit.' }
+        ]
+      }
+    }
+  })
 }
 
 export default async function (fastify: FastifyInstance) {
   fastify.post('/login', login)
+  fastify.post('/register', register)
+
   fastify.get('/location-metadata', (_, reply) => void reply.send({ consent_required: true, country_code: 'FR' }))
 }

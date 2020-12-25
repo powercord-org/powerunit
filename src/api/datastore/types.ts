@@ -30,38 +30,53 @@ export enum PresenceType { ONLINE, IDLE, DND, OFFLINE }
 export enum RelationshipType { NONE, FRIEND, BLOCK }
 
 export interface User {
+  id: string
   username: string
   discriminator: string
   avatar: string | null
 }
 
+export interface SelfUser extends User {
+  settings: {
+    locale: string
+    theme: string
+  }
+}
+
 export interface Presence {
+  id: string
   // todo
 }
 
 export interface Relationship {
+  id: string
   of: number
   userId: number
   type: RelationshipType
 }
 
 export interface Guild {
+  id: string
   // todo
 }
 
 export interface BasicChannel {
+  id: string
   // todo
 }
 
 export interface TextChannel extends BasicChannel {
+  id: string
   // todo
 }
 
 export interface VoiceChannel extends BasicChannel {
+  id: string
   // todo
 }
 
 export interface DMChannel extends BasicChannel {
+  id: string
   // todo
 }
 
@@ -69,17 +84,18 @@ export interface DMChannel extends BasicChannel {
 export type Channel = TextChannel | VoiceChannel | DMChannel
 
 export interface Message {
+  id: string
   // todo
 }
 
 export interface DataStore {
   user: User
-  users: Map<number, User>
-  presences: Map<number, Presence>
-  relations: Map<number, Relationship>
-  guilds: Map<number, Guild>
-  channels: Map<number, Channel>
-  messages: Map<number, Message>
+  users: Map<string, User>
+  presences: Map<string, Presence>
+  relations: Map<string, Relationship>
+  guilds: Map<string, Guild>
+  channels: Map<string, Channel>
+  messages: Map<string, Message>
 }
 
-export type DataTypes = Exclude<keyof DataStore, 'user'>
+export type DataType = Exclude<keyof DataStore, 'user'>

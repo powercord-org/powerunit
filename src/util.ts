@@ -47,3 +47,13 @@ export async function rmdirRf (path: string) {
     await rmdir(path)
   }
 }
+
+
+let inc = 0
+export function generateSnowflake (timestamp: number = Date.now()): string {
+  const time = (timestamp - 1420070400000).toString(2)
+  const increment = inc.toString(2).padStart(12, '0')
+  inc = (inc + 1) % 4096
+
+  return `${time}${'0'.repeat(10)}${increment}`
+}

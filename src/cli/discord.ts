@@ -121,7 +121,7 @@ export default async function (apiPort: number): Promise<Readonly<DiscordInstanc
   await page.setRequestInterception(true)
   page.on('request', (request) => {
     const requestUrl = new URL(request.url())
-    if (/^https:\/\/([a-z]+\.)?discord\.com\/api/.test(request.url())) {
+    if (/^https:\/\/([a-z]+\.)?discord(?:app)?\.com\/api/.test(request.url())) {
       requestUrl.protocol = 'https:'
       requestUrl.hostname = 'discord.localhost'
       requestUrl.port = String(apiPort)

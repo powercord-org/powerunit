@@ -41,7 +41,7 @@ export default function (ws: WebSocket) {
         const key = Buffer.from(data.encoded_public_key, 'base64')
         const publicKey = createPublicKey({ key: key, type: 'spki', format: 'der' })
         const enc = publicEncrypt({ key: publicKey, oaepHash: 'sha256' }, Buffer.from('hey cutie <3')).toString('base64')
-        fingerprint = createHash('sha256').update(key).digest('base64').replace(/=/g, '')
+        fingerprint = createHash('sha256').update(key).digest('base64').replace(/\//g, '_').replace(/\+/g, '-').replace(/=/g, '')
         ws.send(JSON.stringify({ op: 'nonce_proof', encrypted_nonce: enc }))
         break
       }
