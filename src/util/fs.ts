@@ -25,11 +25,23 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { FastifyInstance } from 'fastify'
-import { createSimpleReply } from '@util/fastify'
+import { existsSync } from 'fs'
+import { readdir, lstat, unlink, rmdir } from 'fs/promises'
 
-export default async function (fastify: FastifyInstance) {
-  fastify.get('/scheduled-maintenances/upcoming.json', createSimpleReply({ scheduled_maintenances: [] }))
-  fastify.get('/scheduled-maintenances/active.json', createSimpleReply({ scheduled_maintenances: [] }))
-  fastify.get('/incidents/unresolved.json', createSimpleReply({ incidents: [] }))
+export async function rmdirRf (path: string) {
+  if (existsSync(path)) {
+    const files = await readdir(path)
+    await Promise.all(
+      files.map(async (file) => {
+        const curPath = `${path}/${file}`
+        const stat = await lstat(curPath)
+  
+        stat.isDirectory()
+          ? await rmdirRf(curPath)
+          : await unlink(curPath)
+      })
+    )
+
+    await rmdir(path)
+  }
 }

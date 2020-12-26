@@ -32,8 +32,8 @@ import type { IdentifyPayload } from './types'
 import erlpack from 'erlpack'
 import { createDeflate } from 'zlib'
 import { OpCode } from './types'
-import { hasOwnProperty } from '@util'
 import { readSelf } from '@api/datastore'
+import { hasOwnProperty } from '@util/misc'
 
 enum ConnectionState { CONNECTING, CONNECTED, CLOSED }
 
@@ -42,13 +42,17 @@ type Payload = { op: OpCode, d?: any, t?: string, s?: number }
 // I'll assume the gateway requests etf format and zlib-stream compression
 // todo: stop assuming before gateway sjw yells at me
 class GatewayConnection {
-  private state: ConnectionState = ConnectionState.CONNECTING
   private ws: WebSocket
   private deflate: Deflate
   private sequence: number = 0
+  private heartbeatInterval: number
+  private identifyTimer: NodeJS.Timeout
+  private heartbeatTimer: NodeJS.Timeout
+  private state: ConnectionState = ConnectionState.CONNECTING
 
   constructor (ws: WebSocket) {
     this.ws = ws
+    this.heartbeatInterval = (Math.floor(Math.random() * 10) + 40) * 1e3
     this.deflate = createDeflate({ chunkSize: 128 * 1024 })
     this.deflate.on('data', (d: Buffer) => this.ws.send(d))
     this.ws.on('message', this.handleMessage.bind(this))
@@ -60,10 +64,17 @@ class GatewayConnection {
     this.send({
       op: OpCode.HELLO,
       d: {
-        heartbeat_interval: 45000,
+        heartbeat_interval: this.heartbeatInterval,
         _trace: [ 'cutie' ]
       }
     })
+
+    this.identifyTimer = setTimeout(() => this.ws.close(), 60e3)
+    this.heartbeatTimer = setTimeout(() => this.ws.close(), this.heartbeatInterval * 2)
+  }
+
+  getState (): ConnectionState {
+    return this.state
   }
 
   send (payload: Payload): void {
@@ -78,7 +89,7 @@ class GatewayConnection {
     this.deflate.flush()
   }
 
-  close (code?: number, message?: string) {
+  close (code?: number, message?: string): void {
     if (this.state === ConnectionState.CLOSED) throw new Error('Connection already closed!')
     this.ws.close(code, message)
   }
@@ -105,16 +116,18 @@ class GatewayConnection {
     }
   }
 
-  private handleHeartbeat () {
-    // todo: check if heartbeats come normally
+  private handleHeartbeat (): void {
+    clearTimeout(this.heartbeatTimer)
+    this.heartbeatTimer = setTimeout(() => this.ws.close(), this.heartbeatInterval * 2)
     this.send({ op: OpCode.HEARTBEAT_ACK })
   }
 
-  private handleIdentify (payload: IdentifyPayload) {
+  private handleIdentify (payload: IdentifyPayload): void {
     if (this.state !== ConnectionState.CONNECTING) {
       return this.ws.close(4005)
     }
 
+    clearTimeout(this.identifyTimer)
     if (payload.token !== 'powerunit') {
       return this.ws.close(4004)
     }
@@ -124,6 +137,7 @@ class GatewayConnection {
     }
 
     // todo: set presence
+    this.state = ConnectionState.CONNECTED
 
     this.send({
       op: OpCode.DISPATCH,
@@ -181,12 +195,14 @@ const connections: Set<GatewayConnection> = new Set()
 
 export function dispatch (evt: string, data: {}): void {
   connections.forEach((conn) => {
-    // for now all connections are the same user only, no need for a predicate
-    conn.send({
-      op: OpCode.DISPATCH,
-      d: data,
-      t: evt
-    })
+    // for now all connections are the same user only, no need for a user-provided predicate
+    if (conn.getState() === ConnectionState.CONNECTED) {
+      conn.send({
+        op: OpCode.DISPATCH,
+        d: data,
+        t: evt
+      })
+    }
   })
 }
 

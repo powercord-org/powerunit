@@ -26,10 +26,10 @@
  */
 
 import type { FastifyInstance } from 'fastify'
-import { fastifyStatic } from '@util'
+import { createSimpleReply } from '@util/fastify'
 
 export default async function (fastify: FastifyInstance) {
-  fastify.get('/gateway', fastifyStatic({ url: 'wss://gateway.discord.gg' }))
-  fastify.get('/experiments', fastifyStatic({ assignments: [], fingerprint: '1337.uwu' }))
-  fastify.post('/science', fastifyStatic({}, 204))
+  fastify.get('/gateway', createSimpleReply({ url: 'wss://gateway.discord.gg' }))
+  fastify.get('/experiments', createSimpleReply({ assignments: [], fingerprint: '1337.uwu' }))
+  fastify.post('/science', createSimpleReply({}, 204))
 }

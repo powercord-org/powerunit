@@ -20,7 +20,7 @@
     "paths": {
       "@lib/*": [ "lib/*" ],
       "@api/*": [ "api/*" ],
-      "@util": [ "util.ts" ]
+      "@util/*": [ "util/*" ]
     },
 
     "target": "es2016",

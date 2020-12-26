@@ -25,11 +25,28 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { FastifyInstance } from 'fastify'
-import { createSimpleReply } from '@util/fastify'
+import { DeepPartial } from '@util/types'
 
-export default async function (fastify: FastifyInstance) {
-  fastify.get('/scheduled-maintenances/upcoming.json', createSimpleReply({ scheduled_maintenances: [] }))
-  fastify.get('/scheduled-maintenances/active.json', createSimpleReply({ scheduled_maintenances: [] }))
-  fastify.get('/incidents/unresolved.json', createSimpleReply({ incidents: [] }))
+let inc = 0
+export function generateSnowflake (timestamp: number = Date.now()): string {
+  const time = (timestamp - 1420070400000).toString(2)
+  const increment = inc.toString(2).padStart(12, '0')
+  inc = (inc + 1) % 4096
+
+  let dec = BigInt(0)
+  const bin = `${time}${'0'.repeat(10)}${increment}`
+  for (let i = 0; i < bin.length; i++) {
+    const digit = bin[bin.length - i - 1]
+    if (digit === '1') {
+      dec += BigInt(2) ** BigInt(i)
+    }
+  }
+
+  return dec.toString(10)
 }
+
+// @ts-expect-error
+export function mergeData <T extends Record<string, unknown>>(obj1: T, obj2: DeepPartial<T>): T {} // todo
+
+// @ts-expect-error
+export function extractData <T extends Record<string, unknown>>(data: T, filter: Record<string, boolean>): DeepPartial<T> {} // todo; mongo-style sort of

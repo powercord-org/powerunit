@@ -26,10 +26,8 @@
  */
 
 import type { FastifyInstance } from 'fastify'
-import { fastifyStatic } from '@util'
-
-// this contains routes which the client call but are useless and just noop'd here
+import { createSimpleReply } from '@util/fastify'
 
 export default async function (fastify: FastifyInstance) {
-  fastify.get('/library', fastifyStatic([]))
+  fastify.get('/library', createSimpleReply([]))
 }

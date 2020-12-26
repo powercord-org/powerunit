@@ -27,7 +27,7 @@
 
 import createServer from './server'
 import createDiscord from './discord'
-import { rmdirRf } from '@util'
+import { rmdirRf } from '@util/fs'
 
 (async function () {
   const server = await createServer()

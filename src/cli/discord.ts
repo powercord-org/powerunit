@@ -34,7 +34,7 @@ import { tmpdir } from 'os'
 import { mkdir } from 'fs/promises'
 import { spawn } from 'child_process'
 import puppeteer from 'puppeteer-core'
-import { sleep } from '@util'
+import { sleep } from '@util/misc'
 
 export interface DiscordInstance {
   tmpFolder: string | null
@@ -123,7 +123,6 @@ export default async function (apiPort: number): Promise<Readonly<DiscordInstanc
   page.on('request', (request) => {
     const requestUrl = new URL(request.url())
     if (/^https:\/\/([a-z]+\.)?discord(?:app)?\.com\/api/.test(request.url())) {
-      requestUrl.protocol = 'https:'
       requestUrl.hostname = 'discord.localhost'
       requestUrl.port = String(apiPort)
     }

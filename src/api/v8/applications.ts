@@ -26,8 +26,8 @@
  */
 
 import type { FastifyInstance } from 'fastify'
-import { fastifyStatic } from '@util'
+import { createSimpleReply } from '@util/fastify'
 
 export default async function (fastify: FastifyInstance) {
-  fastify.get('/detectable', fastifyStatic([]))
+  fastify.get('/detectable', createSimpleReply([]))
 }

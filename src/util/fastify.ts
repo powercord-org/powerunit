@@ -25,11 +25,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { FastifyInstance } from 'fastify'
-import { createSimpleReply } from '@util/fastify'
+import type { FastifyRequest, FastifyReply, RouteHandlerMethod } from 'fastify'
 
-export default async function (fastify: FastifyInstance) {
-  fastify.get('/scheduled-maintenances/upcoming.json', createSimpleReply({ scheduled_maintenances: [] }))
-  fastify.get('/scheduled-maintenances/active.json', createSimpleReply({ scheduled_maintenances: [] }))
-  fastify.get('/incidents/unresolved.json', createSimpleReply({ incidents: [] }))
+export function createSimpleReply (data: unknown, code: number = 200): RouteHandlerMethod {
+  return (_: FastifyRequest, reply: FastifyReply) => void reply.code(code).send(data)
 }
