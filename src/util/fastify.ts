@@ -27,6 +27,11 @@
 
 import type { FastifyRequest, FastifyReply, RouteHandlerMethod } from 'fastify'
 
-export function createSimpleReply (data: unknown, code: number = 200): RouteHandlerMethod {
-  return (_: FastifyRequest, reply: FastifyReply): void => void reply.code(code).send(data)
+export function createSimpleReply (data: {} | null, code: number = 200): RouteHandlerMethod {
+  if (data) {
+    data = JSON.stringify(data) // serialize only once
+    return (_: FastifyRequest, reply: FastifyReply): void => void reply.code(code).type('application/json').send(data)
+  }
+
+  return (_: FastifyRequest, reply: FastifyReply): void => void reply.code(code).send()
 }

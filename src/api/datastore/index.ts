@@ -27,7 +27,7 @@
 
 import type { DataStore, DataType, SelfUser } from './types'
 import type { DeepPartial } from '@util/types'
-import { generateSnowflake } from '@util/data'
+import { generateSnowflake, mergeData } from '@util/data'
 
 function createSelf (): SelfUser {
   return {
@@ -50,6 +50,14 @@ function createSelf (): SelfUser {
 }
 
 // I don't really care about having an efficient datastore here; What matters is storing it and being able to fetch it.
+// and despite the fact it'd break apart at scale, it's surprisingly decent compared to what I did expect to end with
+
+// todo: BETTER TYPINGS
+// I honestly don't think I'm knowledgeable enough for this, so let's hope a ts guru in the audience comes here to help a girl in need
+//
+// basically, each function receives a collection name, and an *any typed value*
+// the collection name points to a Map<string, TDocument> where TDocument is the type I need for those any typed stuff
+
 const dataStore: DataStore = {
   user: createSelf(),
   users: new Map(),
@@ -62,37 +70,56 @@ const dataStore: DataStore = {
 
 dataStore.users.set(dataStore.user.id, dataStore.user)
 
-export function read (type: DataType, id: string): any | undefined {
-  if (!id) throw new TypeError('ID must be defined')
-  return dataStore[type].get(id)
-}
-
+// Special one; self user
 export function readSelf (): SelfUser {
   return dataStore.user
 }
 
-// todo: get rid of any
+export function read (type: DataType, id: string): any | void {
+  return dataStore[type].get(id)
+}
+
+export function find (type: DataType, predicate: (item: any) => boolean): any | void {
+  for (const item of dataStore[type].values()) {
+    if (predicate(item)) return item
+  }
+}
+
+export function readAll (type: DataType, ids: string[]): any[] {
+  const res: any[] = []
+  ids.forEach((id) => {
+    const item = dataStore[type].get(id)
+    if (item) res.push(item)
+  })
+  return res
+}
+
+export function findAll (type: DataType, predicate: (item: any) => boolean): any[] {
+  const res: any[] = []
+  for (const item of dataStore[type].values()) {
+    if (predicate(item)) res.push(item)
+  }
+  return res
+}
+
 export function push (type: DataType, obj: any, id: string = generateSnowflake()): string {
   dataStore[type].set(id, obj)
   return id
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- todo: get rid of any
 export function patch (type: DataType, id: string, obj: any): void {
   if (type === 'users' && id === dataStore.user.id) throw new Error('Cannot patch base user, use `patchSelf` instead.')
   if (!dataStore[type].has(id)) throw new RangeError(`ID ${id} not found in collection ${type}.`)
+  if (obj.id) throw new TypeError('Cannot patch IDs.')
+
   const item = dataStore[type].get(id)
-  // todo: merge deep
-  delete obj.id // prevent id injection - todo: better
-  dataStore[type].set(id, Object.assign({}, item, obj))
+  dataStore[type].set(id, mergeData(item, obj))
 }
 
 export function patchSelf (user: DeepPartial<SelfUser>): void {
-  // todo: merge deep (the proper way)
-  delete user.id // prevent id injection - todo: better
-  const newUser = Object.assign({}, dataStore.user, user)
-  if (user.settings) newUser.settings = Object.assign({}, dataStore.user.settings, user.settings)
-  dataStore.user = newUser
+  if (user.id) throw new TypeError('Cannot patch IDs.')
+
+  dataStore.user = mergeData(dataStore.user, user)
   dataStore.users.set(dataStore.user.id, dataStore.user)
 }
 

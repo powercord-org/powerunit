@@ -6,6 +6,10 @@
 ### For a mod
 ### For a plugin
 
+## Environment variables
+ - POWERUNIT_USER_DIR
+ - POWERUNIT_VIEWPORT
+
 ## API Reference
 
 -------

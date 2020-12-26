@@ -35,14 +35,14 @@ export enum PresenceType {
 
 export enum RelationshipType { NONE, FRIEND, BLOCK }
 
-export interface User {
+export type User = {
   id: string
   username: string
   discriminator: string
   avatar: string | null
 }
 
-export interface SelfUser extends User {
+export type SelfUser = User & {
   email: string
   phone: string | null
   premium: false | 1 | 2
@@ -56,49 +56,49 @@ export interface SelfUser extends User {
   }
 }
 
-export interface Presence {
+export type Presence = {
   id: string
   // todo
 }
 
-export interface Relationship {
+export type Relationship = {
   id: string
   of: number
   userId: number
   type: RelationshipType
 }
 
-export interface Guild {
+export type Guild = {
   id: string
   // todo
 }
 
-export interface BasicChannel {
+export type BasicChannel = {
   id: string
   // todo
 }
 
-export interface TextChannel extends BasicChannel {
+export type TextChannel = BasicChannel & {
   // todo
 }
 
-export interface VoiceChannel extends BasicChannel {
+export type VoiceChannel = BasicChannel & {
   // todo
 }
 
-export interface DMChannel extends BasicChannel {
+export type DMChannel = BasicChannel & {
   // todo
 }
 
 // todo: other channel types?
 export type Channel = TextChannel | VoiceChannel | DMChannel
 
-export interface Message {
+export type Message = {
   id: string
   // todo
 }
 
-export interface DataStore {
+export type DataStore = {
   user: SelfUser
   users: Map<string, User>
   presences: Map<string, Presence>

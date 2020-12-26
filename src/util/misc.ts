@@ -27,7 +27,7 @@
 
 export const sleep = async (time: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, time))
 
-export function isObject (obj: unknown): obj is {} {
+export function isObject (obj: unknown): obj is Record<PropertyKey, unknown> {
   return typeof obj === 'object' && !Array.isArray(obj)
 }
 

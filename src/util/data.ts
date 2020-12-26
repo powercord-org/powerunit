@@ -26,6 +26,7 @@
  */
 
 import type { DeepPartial } from '@util/types'
+import { hasOwnProperty, isObject } from '@util/misc'
 
 let inc = 0
 export function generateSnowflake (timestamp: number = Date.now()): string {
@@ -45,12 +46,62 @@ export function generateSnowflake (timestamp: number = Date.now()): string {
   return dec.toString(10)
 }
 
-/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function -- not implemented */
+export function cloneDeep<T extends Record<PropertyKey, unknown>> (obj: T): T {
+  const res: Record<PropertyKey, unknown> = {}
+  for (const prop in obj) {
+    if (hasOwnProperty(obj, prop)) {
+      const value = obj[prop]
+      if (Array.isArray(value)) {
+        res[prop] = [ ...value ]
+      } else if (isObject(value)) {
+        res[prop] = cloneDeep(value)
+      } else {
+        res[prop] = value
+      }
+    }
+  }
 
-// @ts-expect-error - not implemented
-export function mergeData <T extends Record<string, unknown>> (obj1: T, obj2: DeepPartial<T>): T {} // todo
+  return res as T
+}
 
-// @ts-expect-error - not implemented
-export function extractData <T extends Record<string, unknown>> (data: T, filter: Record<string, boolean>): DeepPartial<T> {} // todo; mongo-style sort of
+export function mergeData<T extends Record<string, unknown>> (obj1: T, obj2: DeepPartial<T>): T {
+  const res = Object.assign({}, obj1)
+  let key: keyof T
+  for (key in obj2) {
+    if (hasOwnProperty(obj2, key)) {
+      let val1 = obj1[key]
+      let val2 = obj2[key]
+      if (typeof val1 === 'object' && typeof val2 === 'object') {
+        if (Array.isArray(val1) && Array.isArray(val2)) {
+          res[key] = [ ...val1, ...val2 ] as T[typeof key]
+        } else {
+          res[key] = Object.assign({}, val1, val2)
+        }
+      } else {
+        res[key] = val2
+      }
+    }
+  }
+  return res
+}
 
-/* eslint-enable */
+export function extractData<TData extends Record<string, unknown>> (data: TData, keys: Array<keyof TData>, include: boolean = true): DeepPartial<TData> {
+  // todo: handle nested objects
+  // it'll probably be a pain to type and I'm too lazy to implement it
+  // so instead of writing code I write a todo comment like any software engineer
+  //
+  // I may also need the help of a typescript guru here, although I'm fairly certain I ask for the impossible:
+  // is there a way, to make a keyof which would handle nesting? like `[ 'property', 'property.nested', 'property.nested2' ]`?
+  // this is the main thing holding me from implementing nested extraction :(
+
+  let res: DeepPartial<TData>
+  if (include) {
+    res = {}
+    keys.forEach((k) => (res[k] = data[k]))
+  } else {
+    res = cloneDeep<TData>(data)
+    keys.forEach((k) => delete res[k])
+  }
+
+  return res
+}
