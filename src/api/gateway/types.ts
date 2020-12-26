@@ -25,7 +25,42 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type WebSocket from 'ws'
+import type { PresenceType } from '@api/datastore/types'
 
-// @ts-expect-error
-export default function (ws: WebSocket) {}
+export enum OpCode {
+  DISPATCH = 0,
+  HEARTBEAT = 1,
+  IDENTIFY = 2,
+  PRESENCE_UPDATE = 3,
+  VOICE_STATE_UPDATE = 4,
+  // 5?
+  RESUME = 6,
+  RECONNECT = 7,
+  REQUEST_GUILD_MEMBERS = 8,
+  INVALID_SESSION = 9,
+  HELLO = 10,
+  HEARTBEAT_ACK = 11,
+  // other ops?
+}
+
+export interface IdentifyPayload {
+  token: string
+  presence: {
+    status: PresenceType
+    since: number
+    activities: unknown[] // todo
+    afk: boolean
+  }
+  compress: false // not supported
+  capabilities: number
+  properties: Record<string, unknown>
+  client_state: Record<string, unknown>
+}
+
+// PRESENCE_UPDATE
+// VOICE_STATE_UPDATE
+// RESUME
+// RECONNECT
+// REQUEST_GUILD_MEMBERS
+// INVALID_SESSION
+// HEARTBEAT_ACK

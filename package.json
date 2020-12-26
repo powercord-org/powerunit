@@ -10,6 +10,7 @@
     "try": "POWERUNIT_USER_DIR=/tmp/powerunit node -r ts-node/register -r tsconfig-paths/register src/cli/index.ts"
   },
   "dependencies": {
+    "erlpack": "^0.1.3",
     "fastify": "^3.9.2",
     "node-fetch": "^2.6.1",
     "puppeteer-core": "^5.5.0",

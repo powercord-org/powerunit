@@ -28,6 +28,8 @@
 import { existsSync } from 'fs'
 import { readdir, lstat, unlink, rmdir } from 'fs/promises'
 
+export type DeepPartial<TObject extends {}> = { [TProperty in keyof TObject]?: DeepPartial<TObject[TProperty]> }
+
 export const sleep = (time: number) => new Promise(resolve => setTimeout(resolve, time))
 
 export async function rmdirRf (path: string) {
@@ -48,12 +50,28 @@ export async function rmdirRf (path: string) {
   }
 }
 
-
 let inc = 0
 export function generateSnowflake (timestamp: number = Date.now()): string {
   const time = (timestamp - 1420070400000).toString(2)
   const increment = inc.toString(2).padStart(12, '0')
   inc = (inc + 1) % 4096
 
-  return `${time}${'0'.repeat(10)}${increment}`
+  let dec = BigInt(0)
+  const bin = `${time}${'0'.repeat(10)}${increment}`
+  for (let i = 0; i < bin.length; i++) {
+    const digit = bin[bin.length - i - 1]
+    if (digit === '1') {
+      dec += BigInt(2) ** BigInt(i)
+    }
+  }
+
+  return dec.toString(10)
+}
+
+export function isObject (obj: unknown): obj is {} {
+  return typeof obj === 'object' && !Array.isArray(obj)
+}
+
+export function hasOwnProperty <TObject extends {}, TKey extends PropertyKey>(obj: TObject, prop: TKey): obj is TObject & Record<TKey, unknown> {
+  return Object.prototype.hasOwnProperty.call(obj, prop)
 }

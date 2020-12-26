@@ -97,12 +97,13 @@ export default async function (apiPort: number): Promise<Readonly<DiscordInstanc
     await mkdir(tmpFolder)
   }
 
+  // fixme: flags not applied after restart (modules update)
   const discordProcess = spawn(
     discordExecutable,
     [
       '--multi-instance', // Let Discord know we want multiple instances to run on the host computer
       `--remote-debugging-port=${Math.floor((Math.random() * 20000) + 10000)}`, // Enable Chrome DevTools remote controller for puppeteer
-      `--host-rules=MAP *.discord.gg discord.localhost:${apiPort}`, // Mock DNS resolution - https://github.com/puppeteer/puppeteer/issues/2974
+      `--host-rules=MAP *.discord.gg 127.0.0.1:${apiPort}`, // Mock DNS resolution - https://github.com/puppeteer/puppeteer/issues/2974
       '--ignore-certificate-errors' // Self-signed certs memes
     ],
     {

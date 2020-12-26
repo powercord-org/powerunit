@@ -28,8 +28,17 @@ The Discord client is just an electron app, and an electron app is just a glorif
 a new instance of Discord, enable remote debugging, and connect using puppeteer. Once that's done, all of the magic
 is done!
 
+The mock API & Gateway Powerunit runs are in no way suitable for uses other than basic unit testing of the client.
+Only endpoints and features used by the official Discord client are implemented and will work, and there is no
+persistent storage (everything is stored in memory, and dropped once the test is over). There are also little to
+no payload validation for the time being, so if your thingy does raw http requests (*which it shouldn't do >:(*),
+make sure your payload is valid before trying. Data validation will be added in the future.
+
+In the future, I may also introduce a broader support of the API, and who knows maybe make this a viable tool for
+unit testing not only your ~~illegal software~~client mod but your bot as well. In the far future, though.
+
 ## Repo structure
- - `src/api`: Mock routes of the Discord API (only has partial and very funky coverage)
- - `src/cli`: Powerunit CLI, brain of the unit test framework
- - `src/lib`: Unit testing toolsuite; what the end users have access to
- - `cert`: Contains a self-signed certificate, since https is required
+ - `src/api`: Mock routes of the Discord API (only has partial and very funky coverage);
+ - `src/cli`: Powerunit CLI, brain of the unit test framework;
+ - `src/lib`: Unit testing toolsuite; what the end users have access to;
+ - `cert`: Contains a self-signed certificate, since https is required, this is not a security issue;

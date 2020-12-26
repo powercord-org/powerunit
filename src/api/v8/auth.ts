@@ -26,10 +26,10 @@
  */
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import { read } from '../datastore'
+import { readSelf } from '../datastore'
 
 function login (_: FastifyRequest, reply: FastifyReply) {
-  const user = read('user')
+  const user = readSelf()
   reply.code(200).send({
     token: 'powerunit',
     user_settings: {

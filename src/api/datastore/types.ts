@@ -25,9 +25,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-export enum PresenceType { ONLINE, IDLE, DND, OFFLINE }
+export enum PresenceType {
+  ONLINE = 'online',
+  IDLE = 'idle',
+  DND = 'dnd',
+  OFFLINE = 'offline',
+  INVISIBLE = 'invisible'
+}
 
 export enum RelationshipType { NONE, FRIEND, BLOCK }
+
+export interface UserFlags extends Number {
+
+}
 
 export interface User {
   id: string
@@ -37,6 +47,13 @@ export interface User {
 }
 
 export interface SelfUser extends User {
+  email: string
+  phone: string | null
+  premium: false | 1 | 2
+  mfa_enabled: boolean
+  verified: boolean
+  flags: UserFlags
+  nsfw_allowed: boolean | null
   settings: {
     locale: string
     theme: string
@@ -66,17 +83,14 @@ export interface BasicChannel {
 }
 
 export interface TextChannel extends BasicChannel {
-  id: string
   // todo
 }
 
 export interface VoiceChannel extends BasicChannel {
-  id: string
   // todo
 }
 
 export interface DMChannel extends BasicChannel {
-  id: string
   // todo
 }
 
@@ -89,7 +103,7 @@ export interface Message {
 }
 
 export interface DataStore {
-  user: User
+  user: SelfUser
   users: Map<string, User>
   presences: Map<string, Presence>
   relations: Map<string, Relationship>

@@ -23,7 +23,7 @@
       "@util": [ "util.ts" ]
     },
 
-    "target": "es6",
+    "target": "es2016",
     "module": "commonjs",
     "esModuleInterop": true,
     "declaration": true,

@@ -26,6 +26,7 @@
  */
 
 import type { DataStore, DataType, SelfUser } from './types'
+import type { DeepPartial } from '@util'
 import { generateSnowflake } from '@util'
 
 function createSelf (): SelfUser {
@@ -34,6 +35,13 @@ function createSelf (): SelfUser {
     username: 'powerunit',
     discriminator: '0001',
     avatar: null,
+    flags: 0,
+    email: 'powerunit@powercord.dev',
+    phone: null,
+    premium: false,
+    verified: true,
+    mfa_enabled: false,
+    nsfw_allowed: null,
     settings: {
       locale: 'en-GB',
       theme: 'dark'
@@ -54,13 +62,13 @@ const dataStore: DataStore = {
 
 dataStore.users.set(dataStore.user.id, dataStore.user)
 
-export function read (type: 'user'): SelfUser
-// todo: get rid of any
-export function read (type: DataType, id: string): any | undefined
-export function read (type: DataType | 'user', id?: string): any | undefined {
-  if (type === 'user') return dataStore.user
+export function read (type: DataType, id: string): any | undefined {
   if (!id) throw new TypeError('ID must be defined')
   return dataStore[type].get(id)
+}
+
+export function readSelf (): SelfUser {
+  return dataStore.user
 }
 
 // todo: get rid of any
@@ -71,9 +79,21 @@ export function push (type: DataType, obj: any, id: string = generateSnowflake()
 
 // todo: get rid of any
 export function patch (type: DataType, id: string, obj: any): void {
+  if (type === 'users' && id === dataStore.user.id) throw new Error('Cannot patch base user, use `patchSelf` instead.')
   if (!dataStore[type].has(id)) throw new RangeError(`ID ${id} not found in collection ${type}.`)
   const item = dataStore[type].get(id)
+  // todo: merge deep
+  delete obj.id // prevent id injection - todo: better
   dataStore[type].set(id, Object.assign({}, item, obj))
+}
+
+export function patchSelf (user: DeepPartial<SelfUser>) {
+  // todo: merge deep (the proper way)
+  delete user.id // prevent id injection - todo: better
+  const newUser = Object.assign({}, dataStore.user, user)
+  if (user.settings) newUser.settings = Object.assign({}, dataStore.user.settings, user.settings)
+  dataStore.user = newUser
+  dataStore.users.set(dataStore.user.id, dataStore.user)
 }
 
 export function pull (type: DataType, id: string): boolean {
