@@ -48,11 +48,27 @@ export enum ChannelType {
   PRIVATE_THREAD = 12,
 }
 
+export type CustomStatus = {
+  text: string | null
+  expires_at: string | null
+  emoji_id: string | null
+  emoji_name: string | null
+}
+
+export type GuildFolder = {
+  guild_ids: string[]
+  id: string | null
+  name: string | null
+  color: number | null
+}
+
 export type User = {
   id: string
   username: string
   discriminator: string
   avatar: string | null
+  bot: boolean
+  system: boolean
 }
 
 export type SelfUser = User & {
@@ -66,6 +82,37 @@ export type SelfUser = User & {
   settings: {
     locale: string
     theme: string
+    show_current_game: boolean
+    restricted_guilds: string[]
+    default_guilds_restricted: boolean
+    inline_attachment_media: boolean
+    inline_embed_media: boolean
+    gif_auto_play: boolean
+    render_embeds: boolean
+    render_reactions: boolean
+    animate_emoji: boolean
+    enable_tts_command: boolean
+    message_display_compact: boolean
+    convert_emoticons: boolean
+    explicit_content_filter: number
+    disable_games_tab: boolean
+    developer_mode: boolean
+    guild_positions: string[]
+    detect_platform_accounts: boolean
+    status: string
+    afk_timeout: number
+    timezone_offset: number
+    stream_notifications_enabled: boolean
+    allow_accessibility_detection: boolean
+    contact_sync_enabled: boolean
+    native_phone_integration_enabled: boolean
+    friend_source_flags: {
+      all: boolean
+      mutual_friends: boolean
+      mutual_guilds: boolean
+    }
+    guild_folders: GuildFolder[]
+    custom_status: CustomStatus | null
   }
 }
 
