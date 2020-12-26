@@ -130,8 +130,32 @@ export default async function (apiPort: number): Promise<Readonly<DiscordInstanc
     request.continue({ url: requestUrl.href })
   })
 
-  await page.setViewport({ width: 1280, height: 720 })
+  const viewPort = process.env.POWERUNIT_VIEWPORT
+  let width = 1280
+  let height = 720
 
+  if(viewPort && viewPort !== 'null') {
+    const result = viewPort.match(/^(\d+)x(\d+)$/)
+    
+    if(!result) {
+      throw new Error('Environment variable \'POWERUNIT_VIEWPORT\' must be in format \'{width}x{height}\' or \'null\'.')
+    }
+    
+    const [, widthStr, heightStr] = result
+    
+    width = Number(widthStr)
+    height = Number(heightStr)
+
+    // Prevent viewport width & height from underflowing Discord's client minimum width & height
+    if(width < 940 || height < 475) {
+      throw new Error(`Viewport is set to '${viewPort}' but must at least be '940x475'.`)
+    }
+  }
+
+  if(viewPort !== 'null') {
+    await page.setViewport({ width, height })
+  }
+  
   return {
     tmpFolder: tmpFolder,
     process: discordProcess,
