@@ -35,10 +35,6 @@ export enum PresenceType {
 
 export enum RelationshipType { NONE, FRIEND, BLOCK }
 
-export interface UserFlags extends Number {
-
-}
-
 export interface User {
   id: string
   username: string
@@ -52,7 +48,7 @@ export interface SelfUser extends User {
   premium: false | 1 | 2
   mfa_enabled: boolean
   verified: boolean
-  flags: UserFlags
+  flags: number
   nsfw_allowed: boolean | null
   settings: {
     locale: string
