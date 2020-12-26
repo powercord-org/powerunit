@@ -28,7 +28,7 @@
 import type { FastifyInstance } from 'fastify'
 import { createSimpleReply } from '@util/fastify'
 
-export default async function (fastify: FastifyInstance) {
+export default async function (fastify: FastifyInstance): Promise<void> {
   fastify.get('/scheduled-maintenances/upcoming.json', createSimpleReply({ scheduled_maintenances: [] }))
   fastify.get('/scheduled-maintenances/active.json', createSimpleReply({ scheduled_maintenances: [] }))
   fastify.get('/incidents/unresolved.json', createSimpleReply({ incidents: [] }))

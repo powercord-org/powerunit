@@ -51,16 +51,8 @@ export interface IdentifyPayload {
     activities: unknown[] // todo
     afk: boolean
   }
-  compress: false // not supported
+  compress: boolean
   capabilities: number
   properties: Record<string, unknown>
   client_state: Record<string, unknown>
 }
-
-// PRESENCE_UPDATE
-// VOICE_STATE_UPDATE
-// RESUME
-// RECONNECT
-// REQUEST_GUILD_MEMBERS
-// INVALID_SESSION
-// HEARTBEAT_ACK

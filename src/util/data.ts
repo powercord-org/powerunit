@@ -25,7 +25,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { DeepPartial } from '@util/types'
+import type { DeepPartial } from '@util/types'
 
 let inc = 0
 export function generateSnowflake (timestamp: number = Date.now()): string {
@@ -45,8 +45,12 @@ export function generateSnowflake (timestamp: number = Date.now()): string {
   return dec.toString(10)
 }
 
-// @ts-expect-error
-export function mergeData <T extends Record<string, unknown>>(obj1: T, obj2: DeepPartial<T>): T {} // todo
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function -- not implemented */
 
-// @ts-expect-error
-export function extractData <T extends Record<string, unknown>>(data: T, filter: Record<string, boolean>): DeepPartial<T> {} // todo; mongo-style sort of
+// @ts-expect-error - not implemented
+export function mergeData <T extends Record<string, unknown>> (obj1: T, obj2: DeepPartial<T>): T {} // todo
+
+// @ts-expect-error - not implemented
+export function extractData <T extends Record<string, unknown>> (data: T, filter: Record<string, boolean>): DeepPartial<T> {} // todo; mongo-style sort of
+
+/* eslint-enable */

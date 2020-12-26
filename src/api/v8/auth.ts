@@ -26,36 +26,33 @@
  */
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import { readSelf } from '../datastore'
+import { createSimpleReply } from '@util/fastify'
+import { readSelf } from '@api/datastore'
 
-function login (_: FastifyRequest, reply: FastifyReply) {
+function login (_: FastifyRequest, reply: FastifyReply): void {
   const user = readSelf()
   reply.code(200).send({
     token: 'powerunit',
     user_settings: {
       locale: user.settings.locale,
-      theme: user.settings.theme
-    }
+      theme: user.settings.theme,
+    },
   })
 }
 
-function register (_: FastifyRequest, reply: FastifyReply) {
-  reply.code(400).send({
+export default async function (fastify: FastifyInstance): Promise<void> {
+  fastify.post('/login', login)
+  fastify.post('/register', createSimpleReply({
     code: 50035,
     message: 'Invalid form body',
     errors: {
       email: {
         _errors: [
-          { code: 'NOT_SUPPORTED', message: 'Registrations are not supported by Powerunit.' }
-        ]
-      }
-    }
-  })
-}
+          { code: 'NOT_SUPPORTED', message: 'Registrations are not supported by Powerunit.' },
+        ],
+      },
+    },
+  }, 400))
 
-export default async function (fastify: FastifyInstance) {
-  fastify.post('/login', login)
-  fastify.post('/register', register)
-
-  fastify.get('/location-metadata', (_, reply) => void reply.send({ consent_required: true, country_code: 'FR' }))
+  fastify.get('/location-metadata', createSimpleReply({ consent_required: true, country_code: 'FR' }))
 }

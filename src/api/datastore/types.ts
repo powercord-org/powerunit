@@ -30,7 +30,7 @@ export enum PresenceType {
   IDLE = 'idle',
   DND = 'dnd',
   OFFLINE = 'offline',
-  INVISIBLE = 'invisible'
+  INVISIBLE = 'invisible',
 }
 
 export enum RelationshipType { NONE, FRIEND, BLOCK }

@@ -29,12 +29,13 @@ import createServer from './server'
 import createDiscord from './discord'
 import { rmdirRf } from '@util/fs'
 
-(async function () {
+(async function (): Promise<void> {
   const server = await createServer()
   const discord = await createDiscord(server.port)
   if (discord.tmpFolder) discord.process.once('close', () => void rmdirRf(discord.tmpFolder!))
 
   // wait for full load
+
   // login as fake user
 
   // RUN UNIT TESTS
@@ -42,4 +43,4 @@ import { rmdirRf } from '@util/fs'
   // close Discord
   // server.close()
   // discord.process.kill()
-})()
+}())

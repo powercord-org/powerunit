@@ -32,11 +32,11 @@ import { join } from 'path'
 import { readFileSync } from 'fs'
 import { createServer } from 'https'
 import { Server } from 'ws'
-import Fastify from 'fastify'
+import fastifyFactory from 'fastify'
 
+import rest from '@api/rest'
 import gateway from '@api/gateway'
 import remoteAuth from '@api/remote-auth'
-import rest from '@api/rest'
 
 export interface ServerInstance {
   port: number
@@ -47,10 +47,10 @@ export default async function (): Promise<Readonly<ServerInstance>> {
   const port = Math.floor((Math.random() * 20000) + 10000)
   const http = createServer({
     cert: readFileSync(join(__dirname, '..', '..', 'cert', 'server-cert.pem')),
-    key: readFileSync(join(__dirname, '..', '..', 'cert', 'server-key.pem'))
+    key: readFileSync(join(__dirname, '..', '..', 'cert', 'server-key.pem')),
   })
 
-  const fastify = Fastify({ logger: true, serverFactory: (h) => http.on('request', h) })
+  const fastify = fastifyFactory({ logger: true, serverFactory: (h) => http.on('request', h) })
   const gatewayServer = new Server({ noServer: true })
   const remoteAuthServer = new Server({ noServer: true })
 
@@ -60,24 +60,25 @@ export default async function (): Promise<Readonly<ServerInstance>> {
 
   http.on('upgrade', (request: IncomingMessage, socket: Socket, head: Buffer) => {
     if (request.headers.host === 'remote-auth-gateway.discord.gg') {
-      remoteAuthServer.handleUpgrade(request, socket, head, ws => remoteAuthServer.emit('connection', ws, request))
+      remoteAuthServer.handleUpgrade(request, socket, head, (ws) => remoteAuthServer.emit('connection', ws, request))
     } else if (request.headers.host === 'gateway.discord.gg') {
-      gatewayServer.handleUpgrade(request, socket, head, ws => gatewayServer.emit('connection', ws, request))
+      gatewayServer.handleUpgrade(request, socket, head, (ws) => gatewayServer.emit('connection', ws, request))
     } else {
       socket.destroy()
     }
   })
 
   await fastify.ready()
-  await new Promise<void>((resolve) => http.listen(port, () => void resolve()))
+  await new Promise<void>((resolve) => http.listen(port, () => resolve()))
 
   return {
     port: port,
-    close: async () => Promise.all([
-      fastify.close(),
-      new Promise((resolve) => gatewayServer.close(resolve)),
-      new Promise((resolve) => remoteAuthServer.close(resolve)),
-      new Promise((resolve) => http.close(resolve))
-    ])
+    close: async (): Promise<unknown> =>
+      Promise.all([
+        fastify.close(),
+        new Promise((resolve) => gatewayServer.close(resolve)),
+        new Promise((resolve) => remoteAuthServer.close(resolve)),
+        new Promise((resolve) => http.close(resolve)),
+      ]),
   }
 }

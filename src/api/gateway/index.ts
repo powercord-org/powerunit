@@ -37,20 +37,25 @@ import { hasOwnProperty } from '@util/misc'
 
 enum ConnectionState { CONNECTING, CONNECTED, CLOSED }
 
-type Payload = { op: OpCode, d?: any, t?: string, s?: number }
+type Payload = { op: OpCode, d?: unknown, t?: string, s?: number }
 
-// I'll assume the gateway requests etf format and zlib-stream compression
-// todo: stop assuming before gateway sjw yells at me
+// I'll assume the gateway requests etf format and zlib-stream compression - todo: stop assuming before gateway sjw yells at me
 class GatewayConnection {
   private ws: WebSocket
+
   private deflate: Deflate
+
   private sequence: number = 0
+
   private heartbeatInterval: number
+
   private identifyTimer: NodeJS.Timeout
+
   private heartbeatTimer: NodeJS.Timeout
+
   private state: ConnectionState = ConnectionState.CONNECTING
 
-  constructor (ws: WebSocket) {
+  public constructor (ws: WebSocket) {
     this.ws = ws
     this.heartbeatInterval = (Math.floor(Math.random() * 10) + 40) * 1e3
     this.deflate = createDeflate({ chunkSize: 128 * 1024 })
@@ -58,6 +63,7 @@ class GatewayConnection {
     this.ws.on('message', this.handleMessage.bind(this))
     this.ws.once('close', () => {
       this.state = ConnectionState.CLOSED
+      // eslint-disable-next-line no-use-before-define -- its fine
       connections.delete(this)
     })
 
@@ -65,19 +71,19 @@ class GatewayConnection {
       op: OpCode.HELLO,
       d: {
         heartbeat_interval: this.heartbeatInterval,
-        _trace: [ 'cutie' ]
-      }
+        _trace: [ 'cutie' ],
+      },
     })
 
     this.identifyTimer = setTimeout(() => this.ws.close(), 60e3)
     this.heartbeatTimer = setTimeout(() => this.ws.close(), this.heartbeatInterval * 2)
   }
 
-  getState (): ConnectionState {
+  public getState (): ConnectionState {
     return this.state
   }
 
-  send (payload: Payload): void {
+  public send (payload: Payload): void {
     if (this.state === ConnectionState.CLOSED) throw new Error('Connection is closed!')
     if (payload.op === OpCode.DISPATCH) {
       if (!payload.t) throw new TypeError('An event must be defined for a dispatch')
@@ -89,13 +95,13 @@ class GatewayConnection {
     this.deflate.flush()
   }
 
-  close (code?: number, message?: string): void {
+  public close (code?: number, message?: string): void {
     if (this.state === ConnectionState.CLOSED) throw new Error('Connection already closed!')
     this.ws.close(code, message)
   }
 
   private handleMessage (encoded: Buffer): void {
-    let data: Payload
+    let data: Payload | null
     try { data = erlpack.unpack(encoded) } catch { return this.ws.close(4002) }
     if (!data || typeof data !== 'object' || !hasOwnProperty(data, 'op') || !hasOwnProperty(data, 'd')) {
       return this.ws.close(4002)
@@ -132,7 +138,7 @@ class GatewayConnection {
       return this.ws.close(4004)
     }
 
-    if (payload.compress !== false) {
+    if (payload.compress) {
       return this.ws.close(4000, 'Unsupported (powerunit)')
     }
 
@@ -159,7 +165,7 @@ class GatewayConnection {
         read_state: {
           version: 50,
           partial: false,
-          entries: [] // todo
+          entries: [], // todo
         },
         relationships: [], // todo
         session_id: Math.random().toString(16).slice(2),
@@ -168,12 +174,12 @@ class GatewayConnection {
         user_guild_settings: {
           version: 0,
           partial: false,
-          entries: [] // todo
+          entries: [], // todo
         },
         user_settings: readSelf().settings,
         users: [], // todo
-        _trace: [ 'cutie uwu' ]
-      }
+        _trace: [ 'cutie uwu' ],
+      },
     })
 
     this.send({
@@ -184,9 +190,9 @@ class GatewayConnection {
         merged_members: [], // todo
         merged_presences: {
           guilds: [], // todo
-          friends: [] // todo
-        }
-      }
+          friends: [], // todo
+        },
+      },
     })
   }
 }
@@ -200,13 +206,13 @@ export function dispatch (evt: string, data: {}): void {
       conn.send({
         op: OpCode.DISPATCH,
         d: data,
-        t: evt
+        t: evt,
       })
     }
   })
 }
 
-export default function (ws: WebSocket) {
+export default function (ws: WebSocket): void {
   const conn = new GatewayConnection(ws)
   connections.add(conn)
 }

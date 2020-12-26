@@ -28,6 +28,6 @@
 import type { FastifyInstance } from 'fastify'
 import { createSimpleReply } from '@util/fastify'
 
-export default async function (fastify: FastifyInstance) {
+export default async function (fastify: FastifyInstance): Promise<void> {
   fastify.get('/detectable', createSimpleReply([]))
 }

@@ -25,4 +25,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-export type DeepPartial<TObject extends {}> = { [TProperty in keyof TObject]?: DeepPartial<TObject[TProperty]> }
+export type DeepPartial<TObject extends {}> = {
+  [TProperty in keyof TObject]?:
+    TObject[TProperty] extends {}
+      ? DeepPartial<TObject[TProperty]>
+      : TObject[TProperty]
+}

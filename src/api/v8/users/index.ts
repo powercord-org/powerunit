@@ -29,6 +29,6 @@ import type { FastifyInstance } from 'fastify'
 
 import me from './me'
 
-export default async function (fastify: FastifyInstance) {
+export default async function (fastify: FastifyInstance): Promise<void> {
   fastify.register(me, { prefix: '/@me' })
 }

@@ -60,7 +60,7 @@ async function findDiscord (): Promise<string> {
 
 async function getDevToolsEndpoint (childProcess: ChildProcessWithoutNullStreams): Promise<string> {
   return new Promise((resolve) => {
-    function processStdout (line: string) {
+    function processStdout (line: string): void {
       line = line.trim()
       if (line.startsWith('DevTools listening on')) {
         childProcess.stderr.off('data', processStdout)
@@ -69,8 +69,8 @@ async function getDevToolsEndpoint (childProcess: ChildProcessWithoutNullStreams
     }
 
     // The devtools listening thing is sent to stderr
-    childProcess.stderr.setEncoding('utf8');
-    childProcess.stderr.on('data', processStdout);
+    childProcess.stderr.setEncoding('utf8')
+    childProcess.stderr.on('data', processStdout)
   })
 }
 
@@ -79,9 +79,9 @@ async function getMainWindow (browser: Browser): Promise<Page> {
   let discordPage = null
   do {
     const pages = await browser.pages()
-    discordPage = pages.find(p => p.url().startsWith('https:'))
+    discordPage = pages.find((p) => p.url().startsWith('https:'))
     if (!discordPage) await sleep(10)
-  } while (!discordPage);
+  } while (!discordPage)
 
   return discordPage
 }
@@ -104,19 +104,19 @@ export default async function (apiPort: number): Promise<Readonly<DiscordInstanc
       '--multi-instance', // Let Discord know we want multiple instances to run on the host computer
       `--remote-debugging-port=${Math.floor((Math.random() * 20000) + 10000)}`, // Enable Chrome DevTools remote controller for puppeteer
       `--host-rules=MAP *.discord.gg 127.0.0.1:${apiPort}`, // Mock DNS resolution - https://github.com/puppeteer/puppeteer/issues/2974
-      '--ignore-certificate-errors' // Self-signed certs memes
+      '--ignore-certificate-errors', // Self-signed certs memes
     ],
     {
       env: {
         ...filterEnv(process.env),
-        [envKey]: (process.env.POWERUNIT_USER_DIR ?? tmpFolder)!, // this cannot be null
-        POWERUNIT: 'true'
-      }
+        [envKey]: process.env.POWERUNIT_USER_DIR ?? tmpFolder!, // this cannot be null, but typescript doesn't know
+        POWERUNIT: 'true',
+      },
     }
   )
 
   const endpoint = await getDevToolsEndpoint(discordProcess)
-  const browser = await puppeteer.connect({ browserWSEndpoint: endpoint, defaultViewport: null });
+  const browser = await puppeteer.connect({ browserWSEndpoint: endpoint, defaultViewport: null })
   const page = await getMainWindow(browser)
 
   await page.setRequestInterception(true)
@@ -131,35 +131,33 @@ export default async function (apiPort: number): Promise<Readonly<DiscordInstanc
   })
 
   const viewPort = process.env.POWERUNIT_VIEWPORT
-  let width = 1280
-  let height = 720
+  if (viewPort !== 'null') {
+    let width = 1280
+    let height = 720
+    if (viewPort) {
+      const result = viewPort.match(/^(\d+)x(\d+)$/)
 
-  if(viewPort && viewPort !== 'null') {
-    const result = viewPort.match(/^(\d+)x(\d+)$/)
-    
-    if(!result) {
-      throw new Error('Environment variable \'POWERUNIT_VIEWPORT\' must be in format \'{width}x{height}\' or \'null\'.')
-    }
-    
-    const [, widthStr, heightStr] = result
-    
-    width = Number(widthStr)
-    height = Number(heightStr)
+      if (!result) {
+        throw new Error('Environment variable "POWERUNIT_VIEWPORT" must be in format "{width}x{height}" or "null".')
+      }
 
-    // Prevent viewport width & height from underflowing Discord's client minimum width & height
-    if(width < 940 || height < 475) {
-      throw new Error(`Viewport is set to '${viewPort}' but must at least be '940x475'.`)
+      const [ , widthStr, heightStr ] = result
+      width = Number(widthStr)
+      height = Number(heightStr)
+
+      // Prevent viewport width & height from underflowing Discord's client minimum width & height
+      if (width < 940 || height < 475) {
+        throw new Error(`Viewport is set to "${viewPort}" but must at least be "940x475".`)
+      }
     }
+
+    await page.setViewport({ width: width, height: height })
   }
 
-  if(viewPort !== 'null') {
-    await page.setViewport({ width, height })
-  }
-  
   return {
     tmpFolder: tmpFolder,
     process: discordProcess,
     browser: browser,
-    page: page
+    page: page,
   }
 }

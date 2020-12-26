@@ -32,7 +32,7 @@ import users from './users'
 import applications from './applications'
 import misc from './misc'
 
-export default async function (fastify: FastifyInstance) {
+export default async function (fastify: FastifyInstance): Promise<void> {
   fastify.register(auth, { prefix: '/auth' })
   fastify.register(users, { prefix: '/users' })
   fastify.register(applications, { prefix: '/applications' })

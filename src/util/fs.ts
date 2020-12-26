@@ -28,17 +28,19 @@
 import { existsSync } from 'fs'
 import { readdir, lstat, unlink, rmdir } from 'fs/promises'
 
-export async function rmdirRf (path: string) {
+export async function rmdirRf (path: string): Promise<void> {
   if (existsSync(path)) {
     const files = await readdir(path)
     await Promise.all(
       files.map(async (file) => {
         const curPath = `${path}/${file}`
         const stat = await lstat(curPath)
-  
-        stat.isDirectory()
-          ? await rmdirRf(curPath)
-          : await unlink(curPath)
+
+        if (stat.isDirectory()) {
+          await rmdirRf(curPath)
+        } else {
+          await unlink(curPath)
+        }
       })
     )
 

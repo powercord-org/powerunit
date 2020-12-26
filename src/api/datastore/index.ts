@@ -44,8 +44,8 @@ function createSelf (): SelfUser {
     nsfw_allowed: null,
     settings: {
       locale: 'en-GB',
-      theme: 'dark'
-    }
+      theme: 'dark',
+    },
   }
 }
 
@@ -57,7 +57,7 @@ const dataStore: DataStore = {
   relations: new Map(),
   guilds: new Map(),
   channels: new Map(),
-  messages: new Map()
+  messages: new Map(),
 }
 
 dataStore.users.set(dataStore.user.id, dataStore.user)
@@ -77,7 +77,7 @@ export function push (type: DataType, obj: any, id: string = generateSnowflake()
   return id
 }
 
-// todo: get rid of any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- todo: get rid of any
 export function patch (type: DataType, id: string, obj: any): void {
   if (type === 'users' && id === dataStore.user.id) throw new Error('Cannot patch base user, use `patchSelf` instead.')
   if (!dataStore[type].has(id)) throw new RangeError(`ID ${id} not found in collection ${type}.`)
@@ -87,7 +87,7 @@ export function patch (type: DataType, id: string, obj: any): void {
   dataStore[type].set(id, Object.assign({}, item, obj))
 }
 
-export function patchSelf (user: DeepPartial<SelfUser>) {
+export function patchSelf (user: DeepPartial<SelfUser>): void {
   // todo: merge deep (the proper way)
   delete user.id // prevent id injection - todo: better
   const newUser = Object.assign({}, dataStore.user, user)
@@ -101,7 +101,7 @@ export function pull (type: DataType, id: string): boolean {
   return dataStore[type].delete(id)
 }
 
-export function reset () {
+export function reset (): void {
   dataStore.user = createSelf()
   dataStore.users.clear()
   dataStore.presences.clear()

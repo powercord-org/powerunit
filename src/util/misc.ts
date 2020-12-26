@@ -25,12 +25,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-export const sleep = (time: number) => new Promise(resolve => setTimeout(resolve, time))
+export const sleep = async (time: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, time))
 
 export function isObject (obj: unknown): obj is {} {
   return typeof obj === 'object' && !Array.isArray(obj)
 }
 
-export function hasOwnProperty <TObject extends {}, TKey extends PropertyKey>(obj: TObject, prop: TKey): obj is TObject & Record<TKey, unknown> {
+export function hasOwnProperty<TObject extends {}, TKey extends PropertyKey> (obj: TObject, prop: TKey): obj is TObject & Record<TKey, unknown> {
   return Object.prototype.hasOwnProperty.call(obj, prop)
 }

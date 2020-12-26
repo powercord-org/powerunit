@@ -28,5 +28,5 @@
 import type { FastifyRequest, FastifyReply, RouteHandlerMethod } from 'fastify'
 
 export function createSimpleReply (data: unknown, code: number = 200): RouteHandlerMethod {
-  return (_: FastifyRequest, reply: FastifyReply) => void reply.code(code).send(data)
+  return (_: FastifyRequest, reply: FastifyReply): void => void reply.code(code).send(data)
 }
