@@ -35,6 +35,19 @@ export enum PresenceType {
 
 export enum RelationshipType { NONE, FRIEND, BLOCK }
 
+export enum ChannelType {
+  GUILD_TEXT = 0,
+  DM = 1,
+  GUILD_VOICE = 2,
+  GROUP_DM = 3,
+  GUILD_CATEGORY = 4,
+  GUILD_ANNOUNCEMENT = 5,
+  GUILD_STORE = 6,
+  ANNOUNCEMENT_THREAD = 10,
+  PUBLIC_THREAD = 11,
+  PRIVATE_THREAD = 12,
+}
+
 export type User = {
   id: string
   username: string
@@ -73,25 +86,58 @@ export type Guild = {
   // todo
 }
 
+export type PermissionOverwrite = {
+  id: string
+  type: number
+  allow: string
+  deny: string
+}
+
 export type BasicChannel = {
   id: string
-  // todo
+  type: ChannelType
+  name: string
 }
+
+export type GuildChannel = {
+  guild_id: string
+  position: number
+  parent_id: string | null
+} & BasicChannel
 
 export type TextChannel = BasicChannel & {
-  // todo
+  last_message_id: string | null
+  last_pin_timestamp: string | null
 }
 
-export type VoiceChannel = BasicChannel & {
-  // todo
+export type GuildTextChannel = TextChannel &
+  GuildChannel & {
+    permission_overwrites: PermissionOverwrite[]
+    rate_limit_per_user: number
+    topic: string | null
+    nsfw: boolean
+  }
+
+export type VoiceChannel = GuildChannel & {
+  bitrate: number
+  user_limit: number
 }
 
-export type DMChannel = BasicChannel & {
-  // todo
+export type DMChannel = TextChannel & {
+  recipients: User[]
+}
+
+export type GroupDMChannel = DMChannel & {
+  owner_id: string
+  icon: string | null
 }
 
 // todo: other channel types?
-export type Channel = TextChannel | VoiceChannel | DMChannel
+export type Channel =
+  | GuildTextChannel
+  | VoiceChannel
+  | DMChannel
+  | GroupDMChannel
 
 export type Message = {
   id: string
