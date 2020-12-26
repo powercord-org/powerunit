@@ -26,15 +26,10 @@
  */
 
 import type { FastifyInstance } from 'fastify'
+import { fastifyStatic } from '@util'
 
-import auth from './auth'
-import users from './users'
-import applications from './applications'
-import misc from './misc'
+// this contains routes which the client call but are useless and just noop'd here
 
 export default async function (fastify: FastifyInstance) {
-  fastify.register(auth, { prefix: '/auth' })
-  fastify.register(users, { prefix: '/users' })
-  fastify.register(applications, { prefix: '/applications' })
-  fastify.register(misc)
+  fastify.get('/library', fastifyStatic([]))
 }

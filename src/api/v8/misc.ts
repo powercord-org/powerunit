@@ -25,21 +25,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { FastifyInstance, FastifyRequest, FastifyReply, RouteHandlerMethod } from 'fastify'
-
-// this contains routes which the client call but are useless and just noop'd here
-
-function noop (data: {}, code: number = 200): RouteHandlerMethod {
-  return (_: FastifyRequest, reply: FastifyReply) => void reply.code(code).send(data)
-}
+import type { FastifyInstance } from 'fastify'
+import { fastifyStatic } from '@util'
 
 export default async function (fastify: FastifyInstance) {
-  // generic
-  fastify.get('/gateway', noop({ url: 'wss://gateway.discord.gg' }))
-  fastify.get('/experiments', noop({ assignments: [], fingerprint: '1337.uwu' }))
-  fastify.post('/science', noop({}, 204))
-
-  // discord store
-  fastify.get('/users/@me/library', noop([]))
-  fastify.get('/applications/detectable', noop([]))
+  fastify.get('/gateway', fastifyStatic({ url: 'wss://gateway.discord.gg' }))
+  fastify.get('/experiments', fastifyStatic({ assignments: [], fingerprint: '1337.uwu' }))
+  fastify.post('/science', fastifyStatic({}, 204))
 }

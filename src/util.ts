@@ -25,6 +25,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import type { FastifyRequest, FastifyReply, RouteHandlerMethod } from 'fastify'
+
 import { existsSync } from 'fs'
 import { readdir, lstat, unlink, rmdir } from 'fs/promises'
 
@@ -74,4 +76,8 @@ export function isObject (obj: unknown): obj is {} {
 
 export function hasOwnProperty <TObject extends {}, TKey extends PropertyKey>(obj: TObject, prop: TKey): obj is TObject & Record<TKey, unknown> {
   return Object.prototype.hasOwnProperty.call(obj, prop)
+}
+
+export function fastifyStatic (data: {}, code: number = 200): RouteHandlerMethod {
+  return (_: FastifyRequest, reply: FastifyReply) => void reply.code(code).send(data)
 }

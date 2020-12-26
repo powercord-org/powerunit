@@ -27,14 +27,8 @@
 
 import type { FastifyInstance } from 'fastify'
 
-import auth from './auth'
-import users from './users'
-import applications from './applications'
-import misc from './misc'
+import me from './me'
 
 export default async function (fastify: FastifyInstance) {
-  fastify.register(auth, { prefix: '/auth' })
-  fastify.register(users, { prefix: '/users' })
-  fastify.register(applications, { prefix: '/applications' })
-  fastify.register(misc)
+  fastify.register(me, { prefix: '/@me' })
 }
