@@ -26,7 +26,11 @@
  */
 
 import type { DeepPartial, NestedKeysOf } from '@util/types'
-import { hasOwnProperty, isObject, deflatten, PropertyTree } from '@util/misc'
+import type { PropertyTree } from '@util/misc'
+
+import { hasOwnProperty, isObject, deflatten } from '@util/misc'
+
+export type Projecton<T extends Record<string, unknown>> = { properties: Array<NestedKeysOf<T>>, delete?: boolean }
 
 let inc = 0
 export function generateSnowflake (timestamp: number = Date.now()): string {
@@ -85,10 +89,10 @@ export function mergeData<T extends Record<string, unknown>> (obj1: T, obj2: Dee
   return res
 }
 
-function runProjection<TData extends Record<string, unknown>> (data: TData, query: PropertyTree<NestedKeysOf<TData>>, include: boolean): DeepPartial<TData> {
-  let res: Record<string, unknown> = include ? {} : cloneDeep(data)
+function runProjection<TData extends Record<string, unknown>> (data: TData, query: PropertyTree<NestedKeysOf<TData>>, del: boolean): DeepPartial<TData> {
+  let res: Record<string, unknown> = del ? {} : cloneDeep(data)
   query.flat.forEach((k) => {
-    if (include) {
+    if (del) {
       res[k] = data[k]
     } else {
       delete res[k]
@@ -98,13 +102,13 @@ function runProjection<TData extends Record<string, unknown>> (data: TData, quer
   for (const nested in query.nested) {
     if (hasOwnProperty(query.nested, nested)) {
       if (!isObject(data[nested])) throw new TypeError('Expected an object')
-      res[nested] = runProjection(data[nested] as Record<string, unknown>, query.nested[nested], include)
+      res[nested] = runProjection(data[nested] as Record<string, unknown>, query.nested[nested], del)
     }
   }
 
   return res as DeepPartial<TData>
 }
 
-export function extractData<TData extends Record<string, unknown>> (data: TData, keys: Array<NestedKeysOf<TData>>, include: boolean = true): DeepPartial<TData> {
-  return runProjection(data, deflatten(keys), include)
+export function projectData<TData extends Record<string, unknown>> (data: TData, projection: Projecton<TData>): DeepPartial<TData> {
+  return runProjection(data, deflatten(projection.properties), projection.delete ?? false)
 }

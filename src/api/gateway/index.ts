@@ -34,6 +34,7 @@ import { createDeflate } from 'zlib'
 import { OpCode } from './types'
 import { readSelf } from '@api/datastore'
 import { hasOwnProperty } from '@util/misc'
+import { projectData } from '@util/data'
 
 enum ConnectionState { CONNECTING, CONNECTED, CLOSED }
 
@@ -168,9 +169,9 @@ class GatewayConnection {
           entries: [], // todo
         },
         relationships: [], // todo
-        session_id: Math.random().toString(16).slice(2),
+        session_id: Math.random().toString(16).slice(2), // powerunit doesn't have session handling in mind
         tutorial: null,
-        user: readSelf(),
+        user: projectData(readSelf(), { properties: [ 'settings' ], delete: true }),
         user_guild_settings: {
           version: 0,
           partial: false,

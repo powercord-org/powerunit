@@ -28,15 +28,12 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { createSimpleReply } from '@util/fastify'
 import { readSelf } from '@api/datastore'
+import { projectData } from '@util/data'
 
 function login (_: FastifyRequest, reply: FastifyReply): void {
-  const user = readSelf()
   reply.code(200).send({
     token: 'powerunit',
-    user_settings: {
-      locale: user.settings.locale,
-      theme: user.settings.theme,
-    },
+    user_settings: projectData(readSelf(), { properties: [ 'settings.locale', 'settings.theme' ] }).settings,
   })
 }
 
