@@ -90,12 +90,12 @@ export function mergeData<T extends Record<string, unknown>> (obj1: T, obj2: Dee
 }
 
 function runProjection<TData extends Record<string, unknown>> (data: TData, query: PropertyTree<NestedKeysOf<TData>>, del: boolean): DeepPartial<TData> {
-  let res: Record<string, unknown> = del ? {} : cloneDeep(data)
+  let res: Record<string, unknown> = del ? cloneDeep(data) : {}
   query.flat.forEach((k) => {
     if (del) {
-      res[k] = data[k]
-    } else {
       delete res[k]
+    } else {
+      res[k] = data[k]
     }
   })
 

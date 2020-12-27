@@ -30,17 +30,19 @@ import type { FastifyInstance } from 'fastify'
 import apiv8 from './v8'
 import status from './status'
 
-export default function (fastify: FastifyInstance, next: () => void): void {
-  fastify.addHook('onRequest', (_, reply, nextHook) => {
+export default async function (fastify: FastifyInstance): Promise<void> {
+  fastify.addHook('onRequest', (_, reply, next) => {
     reply.header('access-control-allow-credentials', 'true')
     reply.header('access-control-allow-headers', 'Content-Type, Authorization, X-Track, X-Super-Properties, X-Context-Properties, X-Failed-Requests, X-Fingerprint, X-RPC-Proxy, X-Debug-Options, x-client-trace-id, If-None-Match, X-RateLimit-Precision')
     reply.header('access-control-allow-methods', 'POST, GET, PUT, PATCH, DELETE')
     reply.header('access-control-allow-origin', '*')
-    nextHook()
+    next()
   })
 
   fastify.register(apiv8, { prefix: '/api/v8' })
   fastify.register(status, { prefix: '/api/v2' })
-  fastify.setNotFoundHandler((_, reply) => void reply.code(404).send({ code: 0, message: '404: Not Found' }))
-  next()
+  fastify.setNotFoundHandler((request, reply) => {
+    console.log(request.url)
+    reply.code(404).send({ code: 0, message: '404: Not Found' })
+  })
 }
