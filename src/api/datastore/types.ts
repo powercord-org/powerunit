@@ -48,6 +48,26 @@ export enum ChannelType {
   PRIVATE_THREAD = 12,
 }
 
+export enum GuildFeature {
+  ANIMATED_ICON = 'ANIMATED_ICON',
+  BANNER = 'BANNER',
+  COMMERCE = 'COMMERCE',
+  COMMUNITY = 'COMMUNITY',
+  DISCOVERABLE = 'DISCOVERABLE',
+  ENABLED_DISCOVERABLE_BEFORE = 'ENABLED_DISCOVERABLE_BEFORE',
+  FEATURABLE = 'FEATURABLE',
+  INVITE_SPLASH = 'INVITE_SPLASH',
+  MEMBER_VERIFICATION_GATE_ENABLED = 'MEMBER_VERIFICATION_GATE_ENABLED',
+  MORE_EMOJI = 'MORE_EMOJI',
+  NEWS = 'NEWS',
+  PARTNERED = 'PARTNERED',
+  PREVIEW_ENABLED = 'PREVIEW_ENABLED',
+  VANITY_URL = 'VANITY_URL',
+  VERIFIED = 'VERIFIED',
+  VIP_REGIONS = 'VIP_REGIONS',
+  WELCOME_SCREEN_ENABLED = 'WELCOME_SCREEN_ENABLED',
+}
+
 export type CustomStatus = {
   text: string | null
   expires_at: string | null
@@ -128,9 +148,73 @@ export type Relationship = {
   type: RelationshipType
 }
 
+export type Emoji = {
+  id?: string
+  name: string
+  roles: string[]
+  require_colons: boolean
+  managed: boolean
+  animated: boolean
+  available: boolean
+}
+
+export type Role = {
+  id: string
+  name: string
+  permissions: string
+  position: number
+  color: number
+  hoist: boolean
+  managed: boolean
+  mentionable: boolean
+}
+
 export type Guild = {
   id: string
-  // todo
+  name: string
+  icon?: string | null
+  icon_hash?: string | null
+  splash?: string | null
+  discovery_splash?: string | null
+  owner?: boolean
+  owner_id: string
+  permissions?: string
+  region?: string
+  afk_channel_id?: string | null
+  afk_timeout?: number
+  widget_enabled?: boolean
+  widget_channel_id?: string | null
+  verification_level?: number
+  default_message_notifications?: number
+  explicit_content_filter?: number
+  roles?: Role[]
+  emojis?: Emoji[]
+  features?: GuildFeature[]
+  mfa_level: number
+  application_id?: string | null
+  system_channel_id?: string | null
+  system_channel_flags?: number
+  rules_channel_id?: string | null
+  joined_at?: string
+  large?: boolean
+  unavailable?: boolean
+  member_count?: number
+  voice_states?: any // todo: VoiceState[]
+  members?: string[]
+  channels?: string[]
+  presences?: Presence[]
+  max_presences?: number | null
+  max_members?: number
+  vanity_url_code?: string | null
+  description?: string | null
+  banner?: string | null
+  premium_tier?: number
+  premium_subscription_count?: number
+  preferred_locale: string
+  public_updates_channel_id?: string | null
+  max_video_channel_users?: number
+  approximate_member_count?: number
+  approximate_presence_count?: number
 }
 
 export type PermissionOverwrite = {
