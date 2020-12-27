@@ -25,8 +25,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { DeepPartial } from '@util/types'
-import { hasOwnProperty, isObject } from '@util/misc'
+import type { DeepPartial, NestedKeysOf } from '@util/types'
+import { hasOwnProperty, isObject, deflatten, PropertyTree } from '@util/misc'
 
 let inc = 0
 export function generateSnowflake (timestamp: number = Date.now()): string {
@@ -85,23 +85,26 @@ export function mergeData<T extends Record<string, unknown>> (obj1: T, obj2: Dee
   return res
 }
 
-export function extractData<TData extends Record<string, unknown>> (data: TData, keys: Array<keyof TData>, include: boolean = true): DeepPartial<TData> {
-  // todo: handle nested objects
-  // it'll probably be a pain to type and I'm too lazy to implement it
-  // so instead of writing code I write a todo comment like any software engineer
-  //
-  // I may also need the help of a typescript guru here, although I'm fairly certain I ask for the impossible:
-  // is there a way, to make a keyof which would handle nesting? like `[ 'property', 'property.nested', 'property.nested2' ]`?
-  // this is the main thing holding me from implementing nested extraction :(
+function runProjection<TData extends Record<string, unknown>> (data: TData, query: PropertyTree<NestedKeysOf<TData>>, include: boolean): DeepPartial<TData> {
+  let res: Record<string, unknown> = include ? {} : cloneDeep(data)
+  query.flat.forEach((k) => {
+    if (include) {
+      res[k] = data[k]
+    } else {
+      delete res[k]
+    }
+  })
 
-  let res: DeepPartial<TData>
-  if (include) {
-    res = {}
-    keys.forEach((k) => (res[k] = data[k]))
-  } else {
-    res = cloneDeep<TData>(data)
-    keys.forEach((k) => delete res[k])
+  for (const nested in query.nested) {
+    if (hasOwnProperty(query.nested, nested)) {
+      if (!isObject(data[nested])) throw new TypeError('Expected an object')
+      res[nested] = runProjection(data[nested] as Record<string, unknown>, query.nested[nested], include)
+    }
   }
 
-  return res
+  return res as DeepPartial<TData>
+}
+
+export function extractData<TData extends Record<string, unknown>> (data: TData, keys: Array<NestedKeysOf<TData>>, include: boolean = true): DeepPartial<TData> {
+  return runProjection(data, deflatten(keys), include)
 }

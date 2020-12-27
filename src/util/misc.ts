@@ -25,12 +25,41 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+export type PropertyTree<T extends string> = { flat: T[], nested: { [key: string]: PropertyTree<string> } }
+
 export const sleep = async (time: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, time))
 
 export function isObject (obj: unknown): obj is Record<PropertyKey, unknown> {
-  return typeof obj === 'object' && !Array.isArray(obj)
+  return typeof obj === 'object' && !Array.isArray(obj) && obj !== null
 }
 
 export function hasOwnProperty<TObject extends {}, TKey extends PropertyKey> (obj: TObject, prop: TKey): obj is TObject & Record<TKey, unknown> {
   return Object.prototype.hasOwnProperty.call(obj, prop)
+}
+
+export function deflatten<T extends string = string> (array: T[]): PropertyTree<T> {
+  const res: PropertyTree<T> = { flat: [], nested: {} }
+
+  const queue: { [key: string]: string[] } = {}
+  for (const item of array) {
+    if (item.includes('.')) {
+      const pos = item.indexOf('.')
+      const key = item.slice(0, pos)
+      if (!queue[key]) queue[key] = []
+      queue[key]!.push(item.slice(pos + 1))
+    } else {
+      if (res.nested[item]) delete res.nested[item]
+      if (!res.flat.includes(item)) res.flat.push(item)
+    }
+  }
+
+  for (const nested in queue) {
+    if (hasOwnProperty(queue, nested)) {
+      if (!res.flat.includes(nested as T)) {
+        res.nested[nested] = deflatten(queue[nested])
+      }
+    }
+  }
+
+  return res
 }

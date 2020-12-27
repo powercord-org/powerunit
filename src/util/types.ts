@@ -31,3 +31,7 @@ export type DeepPartial<TObject extends Record<PropertyKey, unknown>> = TObject 
       ? DeepPartial<TObject[TProperty]>
       : TObject[TProperty]
 }
+
+export type NestedKeysOf<T> = T extends Record<string, unknown>
+  ? Extract<keyof T, string> | { [K in Extract<keyof T, string>]: `${K}.${NestedKeysOf<T[K]>}` }[Extract<keyof T, string>]
+  : never
