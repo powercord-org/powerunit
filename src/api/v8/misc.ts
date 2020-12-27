@@ -31,5 +31,5 @@ import { createSimpleReply } from '@util/fastify'
 export default async function (fastify: FastifyInstance): Promise<void> {
   fastify.get('/gateway', createSimpleReply({ url: 'wss://gateway.discord.gg' }))
   fastify.get('/experiments', createSimpleReply({ assignments: [], fingerprint: '1337.uwu' }))
-  fastify.post('/science', createSimpleReply({}, 204))
+  fastify.post('/science', createSimpleReply(null, 204))
 }

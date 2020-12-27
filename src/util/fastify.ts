@@ -29,7 +29,7 @@ import type { FastifyRequest, FastifyReply, RouteHandlerMethod } from 'fastify'
 
 export function createSimpleReply (data: {} | null, code: number = 200): RouteHandlerMethod {
   if (data) {
-    data = JSON.stringify(data) // serialize only once
+    data = JSON.stringify(data, (_, v) => typeof v === 'bigint' ? v.toString() : v) // serialize only once
     return (_: FastifyRequest, reply: FastifyReply): void => void reply.code(code).type('application/json').send(data)
   }
 

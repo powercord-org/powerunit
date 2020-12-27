@@ -55,6 +55,7 @@ export default async function (): Promise<Readonly<ServerInstance>> {
   const remoteAuthServer = new Server({ noServer: true })
 
   fastify.register(rest)
+  fastify.setReplySerializer((payload) => JSON.stringify(payload, (_, v) => typeof v === 'bigint' ? v.toString() : v))
   gatewayServer.on('connection', gateway)
   remoteAuthServer.on('connection', remoteAuth)
 
