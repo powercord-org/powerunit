@@ -127,9 +127,9 @@ export type SelfUser = User & {
     contact_sync_enabled: boolean
     native_phone_integration_enabled: boolean
     friend_source_flags: {
-      all: boolean
-      mutual_friends: boolean
-      mutual_guilds: boolean
+      all?: boolean
+      mutual_friends?: boolean
+      mutual_guilds?: boolean
     }
     guild_folders: GuildFolder[]
     custom_status: CustomStatus | null
@@ -178,7 +178,7 @@ export type Guild = {
   discovery_splash?: string | null
   owner?: boolean
   owner_id: string
-  permissions?: string
+  permissions?: bigint
   region?: string
   afk_channel_id?: string | null
   afk_timeout?: number
@@ -187,9 +187,9 @@ export type Guild = {
   verification_level?: number
   default_message_notifications?: number
   explicit_content_filter?: number
-  roles?: Role[]
-  emojis?: Emoji[]
-  features?: GuildFeature[]
+  roles?: Map<string, Role>
+  emojis?: Map<string, Emoji>
+  features?: Set<GuildFeature>
   mfa_level: number
   application_id?: string | null
   system_channel_id?: string | null
@@ -220,8 +220,8 @@ export type Guild = {
 export type PermissionOverwrite = {
   id: string
   type: number
-  allow: string
-  deny: string
+  allow: bigint
+  deny: bigint
 }
 
 export type BasicChannel = {
@@ -230,24 +230,23 @@ export type BasicChannel = {
   name: string
 }
 
-export type GuildChannel = {
+export type GuildChannel = BasicChannel & {
   guild_id: string
   position: number
   parent_id: string | null
-} & BasicChannel
+}
 
 export type TextChannel = BasicChannel & {
   last_message_id: string | null
   last_pin_timestamp: string | null
 }
 
-export type GuildTextChannel = TextChannel &
-  GuildChannel & {
-    permission_overwrites: PermissionOverwrite[]
-    rate_limit_per_user: number
-    topic: string | null
-    nsfw: boolean
-  }
+export type GuildTextChannel = TextChannel & GuildChannel & {
+  permission_overwrites: PermissionOverwrite[]
+  rate_limit_per_user: number
+  topic: string | null
+  nsfw: boolean
+}
 
 export type VoiceChannel = GuildChannel & {
   bitrate: number
@@ -255,7 +254,7 @@ export type VoiceChannel = GuildChannel & {
 }
 
 export type DMChannel = TextChannel & {
-  recipients: User[]
+  recipients: string[]
 }
 
 export type GroupDMChannel = DMChannel & {
