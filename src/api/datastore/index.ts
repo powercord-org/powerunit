@@ -73,7 +73,7 @@ function createSelf (): SelfUser {
       native_phone_integration_enabled: true,
       friend_source_flags: { all: true },
       guild_folders: [],
-      custom_status: { text: 'emma is cute', expires_at: null, emoji_id: null, emoji_name: '\ud83c\udf3a' },
+      custom_status: null,
     },
   }
 }
