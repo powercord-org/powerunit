@@ -53,8 +53,8 @@ function filterEnv (env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   return res
 }
 
-async function findDiscord (): Promise<string> {
-  let path!: string | PromiseLike<string>
+async function findDiscord (): Promise<string | null> {
+  let path = null
 
   if (process.platform === 'win32') {
     // get local appdata path
@@ -72,8 +72,6 @@ async function findDiscord (): Promise<string> {
     path = join(discordPath, currentBuild, 'DiscordCanary')
   } else if (process.platform === 'linux') {
     path = '/usr/share/discord-canary/DiscordCanary'
-  } else {
-    console.log('Your OS is not Supported')
   }
   return path
 }
@@ -108,7 +106,7 @@ async function getMainWindow (browser: Browser): Promise<Page> {
 
 export default async function (apiPort: number): Promise<Readonly<DiscordInstance>> {
   const discordExecutable = await findDiscord()
-  if (!discordExecutable) throw new Error('Cannot find Discord')
+  if (!discordExecutable) throw new Error('Cannot find Discord, If you have Discord CANARY installed on a custom dir you need to edit it yourself.')
 
   const envKey = process.platform === 'win32' ? 'APPDATA' : 'XDG_CONFIG_HOME'
   let tmpFolder = null
