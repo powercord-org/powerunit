@@ -31,7 +31,7 @@ import type { Browser, Page } from 'puppeteer-core'
 import { URL } from 'url' // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/34960
 import { join } from 'path'
 import { tmpdir } from 'os'
-import { mkdir } from 'fs/promises'
+import { mkdir, readdir } from 'fs/promises'
 import { spawn } from 'child_process'
 import puppeteer from 'puppeteer-core'
 import { sleep } from '@util/misc'
@@ -54,8 +54,28 @@ function filterEnv (env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
 }
 
 async function findDiscord (): Promise<string> {
-  // todo
-  return '/opt/discord-canary/DiscordCanary'
+  let path!: string | PromiseLike<string>
+
+  if (process.platform === 'win32') {
+    // get local appdata path
+    const localAppdata = process.env.LOCALAPPDATA!
+    // get discord canary path
+    const discordPath = join(localAppdata, 'DiscordCanary')
+
+    const discordDirectory = await readdir(discordPath)
+    // get the current build folder
+    const currentBuild = discordDirectory
+      .filter((appPath) => appPath.startsWith('app-'))
+      .reverse()[0]
+
+    // appened discord canary Executable path
+    path = join(discordPath, currentBuild, 'DiscordCanary')
+  } else if (process.platform === 'linux') {
+    path = '/opt/discord-canary/DiscordCanary'
+  } else {
+    console.log('Your OS is not Supported')
+  }
+  return path
 }
 
 async function getDevToolsEndpoint (childProcess: ChildProcessWithoutNullStreams): Promise<string> {
