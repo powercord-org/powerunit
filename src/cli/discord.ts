@@ -71,7 +71,7 @@ async function findDiscord (): Promise<string> {
     // appened discord canary Executable path
     path = join(discordPath, currentBuild, 'DiscordCanary')
   } else if (process.platform === 'linux') {
-    path = '/opt/discord-canary/DiscordCanary'
+    path = '/usr/share/discord-canary/DiscordCanary'
   } else {
     console.log('Your OS is not Supported')
   }
