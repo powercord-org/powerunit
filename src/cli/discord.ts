@@ -71,6 +71,7 @@ async function findDiscord (): Promise<string | null> {
     // appened discord canary Executable path
     path = join(discordPath, currentBuild, 'DiscordCanary')
   } else if (process.platform === 'linux') {
+    console.log('Default dir is /usr/share/discord-canary/ , If you have Discord CANARY installed on a custom dir you need to edit it yourself. ')
     path = '/usr/share/discord-canary/DiscordCanary'
   }
   return path
