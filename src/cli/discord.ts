@@ -57,10 +57,8 @@ async function findDiscord (): Promise<string | null> {
   let path = null
 
   if (process.platform === 'win32') {
-    // get local appdata path
-    const localAppdata = process.env.LOCALAPPDATA!
     // get discord canary path
-    const discordPath = join(localAppdata, 'DiscordCanary')
+    const discordPath = join(process.env.LOCALAPPDATA!, 'DiscordCanary')
 
     const discordDirectory = await readdir(discordPath)
     // get the current build folder
@@ -68,10 +66,9 @@ async function findDiscord (): Promise<string | null> {
       .filter((appPath) => appPath.startsWith('app-'))
       .reverse()[0]
 
-    // appened discord canary Executable path
+    // append discord canary Executable path
     path = join(discordPath, currentBuild, 'DiscordCanary')
   } else if (process.platform === 'linux') {
-    console.log('Default dir is /usr/share/discord-canary/ , If you have Discord CANARY installed on a custom dir you need to edit it yourself. ')
     path = '/usr/share/discord-canary/DiscordCanary'
   }
   return path
@@ -107,7 +104,7 @@ async function getMainWindow (browser: Browser): Promise<Page> {
 
 export default async function (apiPort: number): Promise<Readonly<DiscordInstance>> {
   const discordExecutable = await findDiscord()
-  if (!discordExecutable) throw new Error('Cannot find Discord, If you have Discord CANARY installed on a custom dir you need to edit it yourself.')
+  if (!discordExecutable) throw new Error('Cannot find Discord, If you have Discord installed on a custom dir you need to edit it yourself.')
 
   const envKey = process.platform === 'win32' ? 'APPDATA' : 'XDG_CONFIG_HOME'
   let tmpFolder = null
