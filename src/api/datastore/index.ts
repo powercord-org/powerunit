@@ -26,9 +26,9 @@
  */
 
 import type { DataStore, DataType, SelfUser } from './types'
-import type { DeepPartial } from '@util/types'
+import type { DeepPartial } from '../../util/types.js'
 
-import { generateSnowflake, mergeData } from '@util/data'
+import { generateSnowflake, mergeData } from '../../util/data.js'
 
 function createSelf (): SelfUser {
   return {

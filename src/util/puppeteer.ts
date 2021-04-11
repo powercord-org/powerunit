@@ -25,9 +25,36 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { FastifyInstance } from 'fastify'
-import { createSimpleReply } from '../../../util/fastify.js'
+import { NodeWebSocketTransport } from 'puppeteer-core/lib/cjs/puppeteer/node/NodeWebSocketTransport.js'
+import { Connection } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection.js'
 
-export default async function (fastify: FastifyInstance): Promise<void> {
-  fastify.get('/library', createSimpleReply([]))
+export interface NodePuppeteer {
+  eval: (js: string) => Promise<any>
+  close: () => Promise<void>
+}
+
+export async function connectToNode (url: string): Promise<NodePuppeteer> {
+  return new Promise((resolve) => {
+    NodeWebSocketTransport.create(url).then(async (ws) => {
+      const conn = new Connection(url, ws, 0)
+
+      await conn.send('Runtime.enable')
+      await conn.send('Debugger.enable')
+      await conn.send('Runtime.runIfWaitingForDebugger')
+      conn.on('Debugger.paused', () => {
+        resolve({
+          eval: async (js: string) =>
+            conn.send('Runtime.evaluate', {
+              replMode: true,
+              includeCommandLineAPI: true,
+              objectGroup: 'powerunit',
+              expression: js,
+            }),
+          close: async () =>
+            conn.send('Runtime.releaseObjectGroup', { objectGroup: 'powerunit' })
+              .then(() => conn.dispose()),
+        })
+      })
+    })
+  })
 }

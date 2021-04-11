@@ -25,10 +25,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { DeepPartial, NestedKeysOf } from '@util/types'
-import type { PropertyTree } from '@util/misc'
+import type { DeepPartial, NestedKeysOf } from './types.js'
+import type { PropertyTree } from './misc.js'
 
-import { isObject, deflatten } from '@util/misc'
+import { isObject, deflatten } from './misc.js'
 
 export type Projecton<T extends Record<string, unknown>> = { properties: Array<NestedKeysOf<T>>, delete?: boolean }
 

@@ -27,8 +27,8 @@
 
 import type { FastifyInstance } from 'fastify'
 
-import apiv8 from './v8'
-import status from './status'
+import apiv8 from './v8/index.js'
+import status from './status.js'
 
 export default async function (fastify: FastifyInstance): Promise<void> {
   fastify.addHook('onRequest', (_, reply, next) => {

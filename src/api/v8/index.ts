@@ -27,10 +27,10 @@
 
 import type { FastifyInstance } from 'fastify'
 
-import auth from './auth'
-import users from './users'
-import applications from './applications'
-import misc from './misc'
+import auth from './auth.js'
+import users from './users/index.js'
+import applications from './applications.js'
+import misc from './misc.js'
 
 export default async function (fastify: FastifyInstance): Promise<void> {
   fastify.register(auth, { prefix: '/auth' })

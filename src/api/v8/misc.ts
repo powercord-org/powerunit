@@ -26,7 +26,7 @@
  */
 
 import type { FastifyInstance } from 'fastify'
-import { createSimpleReply } from '@util/fastify'
+import { createSimpleReply } from '../../util/fastify.js'
 
 export default async function (fastify: FastifyInstance): Promise<void> {
   fastify.get('/gateway', createSimpleReply({ url: 'wss://gateway.discord.gg' }))

@@ -31,12 +31,12 @@ import type { Socket } from 'net'
 import { join } from 'path'
 import { readFileSync } from 'fs'
 import { createServer } from 'https'
-import { Server } from 'ws'
+import WebSocket from 'ws'
 import fastifyFactory from 'fastify'
 
-import rest from '@api/rest'
-import gateway from '@api/gateway'
-import remoteAuth from '@api/remote-auth'
+import rest from '../api/rest.js'
+import gateway from '../api/gateway/index.js'
+import remoteAuth from '../api/remote-auth.js'
 
 export interface ServerInstance {
   port: number
@@ -48,11 +48,13 @@ export default async function (): Promise<Readonly<ServerInstance>> {
   const http = createServer({
     cert: readFileSync(join(__dirname, '..', '..', 'cert', 'server-cert.pem')),
     key: readFileSync(join(__dirname, '..', '..', 'cert', 'server-key.pem')),
+    // cert: readFileSync(new URL('../../cert/server-cert.pem', import.meta.url)),
+    // key: readFileSync(new URL('../../cert/server-key.pem', import.meta.url))
   })
 
   const fastify = fastifyFactory({ logger: true, serverFactory: (h) => http.on('request', h) })
-  const gatewayServer = new Server({ noServer: true })
-  const remoteAuthServer = new Server({ noServer: true })
+  const gatewayServer = new WebSocket.Server({ noServer: true })
+  const remoteAuthServer = new WebSocket.Server({ noServer: true })
 
   fastify.register(rest)
   fastify.setReplySerializer((payload) => JSON.stringify(payload, (_, v) => typeof v === 'bigint' ? v.toString() : v))

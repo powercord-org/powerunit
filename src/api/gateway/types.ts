@@ -25,7 +25,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { PresenceType } from '@api/datastore/types'
+import type { PresenceType } from '../../api/datastore/types.js'
 
 export enum OpCode {
   DISPATCH = 0,

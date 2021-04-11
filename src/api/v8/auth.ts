@@ -26,9 +26,9 @@
  */
 
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import { createSimpleReply } from '@util/fastify'
-import { readSelf } from '@api/datastore'
-import { projectData } from '@util/data'
+import { createSimpleReply } from '../../util/fastify.js'
+import { readSelf } from '../../api/datastore/index.js'
+import { projectData } from '../../util/data.js'
 
 function login (_: FastifyRequest, reply: FastifyReply): void {
   reply.code(200).send({

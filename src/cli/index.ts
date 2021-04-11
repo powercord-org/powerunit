@@ -25,9 +25,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import createServer from './server'
-import createDiscord from './discord'
-import { rmdirRf } from '@util/fs'
+import createServer from './server.js'
+import createDiscord from './discord.js'
+import { rmdirRf } from '../util/fs.js'
 
 (async function (): Promise<void> {
   const server = await createServer()

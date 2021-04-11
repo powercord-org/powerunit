@@ -35,7 +35,8 @@ import { existsSync } from 'fs'
 import { mkdir, readdir } from 'fs/promises'
 import { spawn } from 'child_process'
 import puppeteer from 'puppeteer-core'
-import { sleep } from '@util/misc'
+import { connectToNode } from '../util/puppeteer.js'
+import { sleep } from '../util/misc.js'
 
 export interface DiscordInstance {
   tmpFolder: string | null
@@ -77,14 +78,18 @@ async function findDiscord (): Promise<string | null> {
     return '/opt/discord-canary/DiscordCanary'
   }
 
+  if (process.platform === 'darwin') {
+    return null // todo: I dont know where it is hahayes
+  }
+
   return null
 }
 
-async function getDevToolsEndpoint (childProcess: ChildProcessWithoutNullStreams): Promise<string> {
+async function getRemoteEndpoint (childProcess: ChildProcessWithoutNullStreams, kind: 'DevTools' | 'Debugger'): Promise<string> {
   return new Promise((resolve) => {
     function processStdout (line: string): void {
-      line = line.trim()
-      if (line.startsWith('DevTools listening on')) {
+      line = line.trim().split('\n')[0]
+      if (line.startsWith(`${kind} listening on`)) {
         childProcess.stderr.off('data', processStdout)
         resolve(line.slice(22))
       }
@@ -94,6 +99,16 @@ async function getDevToolsEndpoint (childProcess: ChildProcessWithoutNullStreams
     childProcess.stderr.setEncoding('utf8')
     childProcess.stderr.on('data', processStdout)
   })
+}
+
+async function patchRuntime (discordProcess: ChildProcessWithoutNullStreams, userDirectory: string): Promise<void> {
+  const debugggerEndpoint = await getRemoteEndpoint(discordProcess, 'Debugger')
+  const node = await connectToNode(debugggerEndpoint)
+
+  await node.eval(`require("electron").app.setPath("userData", ${JSON.stringify(userDirectory)})`)
+  // fixme: flags not applied after restart (modules update) - this needs some patching here
+
+  return node.close()
 }
 
 async function getMainWindow (browser: Browser): Promise<Page> {
@@ -112,35 +127,35 @@ export default async function (apiPort: number): Promise<Readonly<DiscordInstanc
   const discordExecutable = await findDiscord()
   if (!discordExecutable) throw new Error('Cannot find Discord.')
 
-  const envKey = process.platform === 'win32' ? 'APPDATA' : 'XDG_CONFIG_HOME'
   let tmpFolder = null
   if (!process.env.POWERUNIT_USER_DIR) {
     tmpFolder = join(tmpdir(), `powerunit-${Math.random().toString(36).slice(2)}`)
     await mkdir(tmpFolder)
   }
 
-  // fixme: flags not applied after restart (modules update)
   const discordProcess = spawn(
     discordExecutable,
     [
       '--multi-instance', // Let Discord know we want multiple instances to run on the host computer
-      `--remote-debugging-port=${Math.floor((Math.random() * 20000) + 10000)}`, // Enable Chrome DevTools remote controller for puppeteer
+      '--inspect-brk=0', // Enable DevTools (Node) remote controller (for us, main thread)
+      '--remote-debugging-port=0', // Enable DevTools (Electron) remote controller (for puppeteer)
       `--host-rules=MAP *.discord.gg 127.0.0.1:${apiPort}`, // Mock DNS resolution - https://github.com/puppeteer/puppeteer/issues/2974
       '--ignore-certificate-errors', // Self-signed certs memes
     ],
-    {
-      env: {
-        ...filterEnv(process.env),
-        [envKey]: process.env.POWERUNIT_USER_DIR ?? tmpFolder!, // this cannot be null, but typescript doesn't know
-        POWERUNIT: 'true',
-      },
-    }
+    { env: { ...filterEnv(process.env), POWERUNIT: 'true' } }
   )
 
-  const endpoint = await getDevToolsEndpoint(discordProcess)
-  const browser = await puppeteer.connect({ browserWSEndpoint: endpoint, defaultViewport: void 0 })
-  const page = await getMainWindow(browser)
+  const userDirectory = process.env.POWERUNIT_USER_DIR ?? tmpFolder! // this cannot be null, but typescript doesn't know
+  await patchRuntime(discordProcess, userDirectory)
 
+  const endpoint = await getRemoteEndpoint(discordProcess, 'DevTools')
+  const browser = await puppeteer.connect({
+    browserWSEndpoint: endpoint,
+    // @ts-expect-error
+    defaultViewport: null,
+  })
+
+  const page = await getMainWindow(browser)
   await page.setRequestInterception(true)
   page.on('request', (request) => {
     const requestUrl = new URL(request.url())

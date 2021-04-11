@@ -31,9 +31,9 @@ import type { IdentifyPayload } from './types'
 
 import erlpack from 'erlpack'
 import { createDeflate } from 'zlib'
-import { OpCode } from './types'
-import { readSelf } from '@api/datastore'
-import { projectData } from '@util/data'
+import { OpCode } from './types.js'
+import { readSelf } from '../../api/datastore/index.js'
+import { projectData } from '../../util/data.js'
 
 enum ConnectionState { CONNECTING, CONNECTED, CLOSED }
 

@@ -2,12 +2,11 @@
   "name": "@powercord/powerunit",
   "version": "0.1.0",
   "description": "Powercord's unit testing framework.",
-  "main": "dist/lib/index.js",
   "repository": "git@github.com:powercord-org/powerunit.git",
   "author": "Cynthia <cynthia@cynthia.dev>",
   "license": "BSD-3-Clause",
   "scripts": {
-    "debug_linux": "POWERUNIT_USER_DIR=/tmp/powerunit node -r ts-node/register -r tsconfig-paths/register src/cli/index.ts",
+    "debug_linux": "tsc && POWERUNIT_VIEWPORT=null POWERUNIT_USER_DIR=/tmp/powerunit node dist/cli/index.js",
     "lint": "eslint src --ext ts"
   },
   "engines": {
