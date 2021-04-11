@@ -33,7 +33,6 @@ import erlpack from 'erlpack'
 import { createDeflate } from 'zlib'
 import { OpCode } from './types'
 import { readSelf } from '@api/datastore'
-import { hasOwnProperty } from '@util/misc'
 import { projectData } from '@util/data'
 
 enum ConnectionState { CONNECTING, CONNECTED, CLOSED }
@@ -104,7 +103,7 @@ class GatewayConnection {
   private handleMessage (encoded: Buffer): void {
     let data: Payload | null
     try { data = erlpack.unpack(encoded) } catch { return this.ws.close(4002) }
-    if (!data || typeof data !== 'object' || !hasOwnProperty(data, 'op') || !hasOwnProperty(data, 'd')) {
+    if (!data || typeof data !== 'object' || !('op' in data) || !('d' in data)) {
       return this.ws.close(4002)
     }
 

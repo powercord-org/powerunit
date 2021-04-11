@@ -31,6 +31,7 @@ import type { Browser, Page } from 'puppeteer-core'
 import { URL } from 'url' // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/34960
 import { join } from 'path'
 import { tmpdir } from 'os'
+import { existsSync } from 'fs'
 import { mkdir, readdir } from 'fs/promises'
 import { spawn } from 'child_process'
 import puppeteer from 'puppeteer-core'
@@ -53,25 +54,30 @@ function filterEnv (env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   return res
 }
 
+// todo: support all 3 release channels
+// todo: allow passing the executable as an env variable
 async function findDiscord (): Promise<string | null> {
-  let path = null
-
   if (process.platform === 'win32') {
-    // get discord canary path
+    // Get Discord's installation path
     const discordPath = join(process.env.LOCALAPPDATA!, 'DiscordCanary')
 
+    // Get the installed version
     const discordDirectory = await readdir(discordPath)
-    // get the current build folder
     const currentBuild = discordDirectory
       .filter((appPath) => appPath.startsWith('app-'))
       .reverse()[0]
 
-    // append discord canary Executable path
-    path = join(discordPath, currentBuild, 'DiscordCanary')
-  } else if (process.platform === 'linux') {
-    path = '/opt/discord-canary/DiscordCanary'
+    // Build the path
+    const path = join(discordPath, currentBuild, 'DiscordCanary')
+    return existsSync(path) ? path : null
   }
-  return path
+
+  if (process.platform === 'linux') {
+    // todo: add all linux paths
+    return '/opt/discord-canary/DiscordCanary'
+  }
+
+  return null
 }
 
 async function getDevToolsEndpoint (childProcess: ChildProcessWithoutNullStreams): Promise<string> {
@@ -132,7 +138,7 @@ export default async function (apiPort: number): Promise<Readonly<DiscordInstanc
   )
 
   const endpoint = await getDevToolsEndpoint(discordProcess)
-  const browser = await puppeteer.connect({ browserWSEndpoint: endpoint, defaultViewport: null })
+  const browser = await puppeteer.connect({ browserWSEndpoint: endpoint, defaultViewport: void 0 })
   const page = await getMainWindow(browser)
 
   await page.setRequestInterception(true)

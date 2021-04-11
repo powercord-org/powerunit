@@ -28,7 +28,7 @@
 import type { DeepPartial, NestedKeysOf } from '@util/types'
 import type { PropertyTree } from '@util/misc'
 
-import { hasOwnProperty, isObject, deflatten } from '@util/misc'
+import { isObject, deflatten } from '@util/misc'
 
 export type Projecton<T extends Record<string, unknown>> = { properties: Array<NestedKeysOf<T>>, delete?: boolean }
 
@@ -53,7 +53,7 @@ export function generateSnowflake (timestamp: number = Date.now()): string {
 export function cloneDeep<T extends Record<PropertyKey, unknown>> (obj: T): T {
   const res: Record<PropertyKey, unknown> = {}
   for (const prop in obj) {
-    if (hasOwnProperty(obj, prop)) {
+    if (prop in obj) {
       const value = obj[prop]
       if (Array.isArray(value)) {
         res[prop] = [ ...value ]
@@ -70,11 +70,11 @@ export function cloneDeep<T extends Record<PropertyKey, unknown>> (obj: T): T {
 
 export function mergeData<T extends Record<string, unknown>> (obj1: T, obj2: DeepPartial<T>): T {
   const res = Object.assign({}, obj1)
-  let key: keyof T
-  for (key in obj2) {
-    if (hasOwnProperty(obj2, key)) {
+  for (const key in obj2) {
+    if (key in obj2) {
       let val1 = obj1[key]
-      let val2 = obj2[key]
+      let val2 = obj2[key] as T[Extract<keyof T, string>]
+
       if (typeof val1 === 'object' && typeof val2 === 'object') {
         if (Array.isArray(val1) && Array.isArray(val2)) {
           res[key] = [ ...val1, ...val2 ] as T[typeof key]
@@ -100,7 +100,7 @@ function runProjection<TData extends Record<string, unknown>> (data: TData, quer
   })
 
   for (const nested in query.nested) {
-    if (hasOwnProperty(query.nested, nested)) {
+    if (nested in query.nested) {
       if (!isObject(data[nested])) throw new TypeError('Expected an object')
       res[nested] = runProjection(data[nested] as Record<string, unknown>, query.nested[nested], del)
     }

@@ -33,10 +33,6 @@ export function isObject (obj: unknown): obj is Record<PropertyKey, unknown> {
   return typeof obj === 'object' && !Array.isArray(obj) && obj !== null
 }
 
-export function hasOwnProperty<TObject extends {}, TKey extends PropertyKey> (obj: TObject, prop: TKey): obj is TObject & Record<TKey, unknown> {
-  return Object.prototype.hasOwnProperty.call(obj, prop)
-}
-
 export function deflatten<T extends string = string> (array: T[]): PropertyTree<T> {
   const res: PropertyTree<T> = { flat: [], nested: {} }
 
@@ -54,7 +50,7 @@ export function deflatten<T extends string = string> (array: T[]): PropertyTree<
   }
 
   for (const nested in queue) {
-    if (hasOwnProperty(queue, nested)) {
+    if (nested in queue) {
       if (!res.flat.includes(nested as T)) {
         res.nested[nested] = deflatten(queue[nested])
       }
