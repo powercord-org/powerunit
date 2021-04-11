@@ -31,7 +31,7 @@ import type { Browser, Page } from 'puppeteer-core'
 import { URL } from 'url' // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/34960
 import { join } from 'path'
 import { tmpdir } from 'os'
-import { mkdir } from 'fs/promises'
+import { mkdir, readdir } from 'fs/promises'
 import { spawn } from 'child_process'
 import puppeteer from 'puppeteer-core'
 import { sleep } from '@util/misc'
@@ -53,9 +53,25 @@ function filterEnv (env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   return res
 }
 
-async function findDiscord (): Promise<string> {
-  // todo
-  return '/opt/discord-canary/DiscordCanary'
+async function findDiscord (): Promise<string | null> {
+  let path = null
+
+  if (process.platform === 'win32') {
+    // get discord canary path
+    const discordPath = join(process.env.LOCALAPPDATA!, 'DiscordCanary')
+
+    const discordDirectory = await readdir(discordPath)
+    // get the current build folder
+    const currentBuild = discordDirectory
+      .filter((appPath) => appPath.startsWith('app-'))
+      .reverse()[0]
+
+    // append discord canary Executable path
+    path = join(discordPath, currentBuild, 'DiscordCanary')
+  } else if (process.platform === 'linux') {
+    path = '/opt/discord-canary/DiscordCanary'
+  }
+  return path
 }
 
 async function getDevToolsEndpoint (childProcess: ChildProcessWithoutNullStreams): Promise<string> {
@@ -88,7 +104,7 @@ async function getMainWindow (browser: Browser): Promise<Page> {
 
 export default async function (apiPort: number): Promise<Readonly<DiscordInstance>> {
   const discordExecutable = await findDiscord()
-  if (!discordExecutable) throw new Error('Cannot find Discord')
+  if (!discordExecutable) throw new Error('Cannot find Discord.')
 
   const envKey = process.platform === 'win32' ? 'APPDATA' : 'XDG_CONFIG_HOME'
   let tmpFolder = null
