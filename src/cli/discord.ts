@@ -69,8 +69,8 @@ async function findDiscord (): Promise<string | null> {
       .reverse()[0]
 
     // Build the path
-    const path = join(discordPath, currentBuild, 'DiscordCanary')
-    return existsSync(path) ? path : null
+    const path = join(discordPath, currentBuild)
+    return existsSync(path) ? path+'\\DiscordCanary' : null
   }
 
   if (process.platform === 'linux') {
