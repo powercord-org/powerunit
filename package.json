@@ -7,6 +7,7 @@
   "license": "BSD-3-Clause",
   "scripts": {
     "debug_linux": "tsc && POWERUNIT_VIEWPORT=null POWERUNIT_USER_DIR=/tmp/powerunit node dist/cli/index.js",
+    "debug_win": "tsc && node dist/cli/index.js",
     "lint": "eslint src --ext ts"
   },
   "engines": {
