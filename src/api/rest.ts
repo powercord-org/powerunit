@@ -26,7 +26,6 @@
  */
 
 import type { FastifyInstance } from 'fastify'
-
 import apiv8 from './v8/index.js'
 import status from './status.js'
 

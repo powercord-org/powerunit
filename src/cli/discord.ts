@@ -25,6 +25,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// todo: wipe the cli part completely and provide functions to start & manage discord in code directly
+
 import type { ChildProcessWithoutNullStreams } from 'child_process'
 import type { Browser, Page } from 'puppeteer-core'
 
@@ -69,13 +71,18 @@ async function findDiscord (): Promise<string | null> {
       .reverse()[0]
 
     // Build the path
-    const path = join(discordPath, currentBuild, 'DiscordCanary')
+    const path = join(discordPath, currentBuild, 'DiscordCanary.exe')
     return existsSync(path) ? path : null
   }
 
   if (process.platform === 'linux') {
-    // todo: add all linux paths
-    return '/opt/discord-canary/DiscordCanary'
+    // We don't care about the real install path, we just need the command which should be in PATH
+    for (const path of (process.env.PATH ?? '').split(':')) {
+      const discord = join(path, 'discord-canary')
+      if (existsSync(discord)) {
+        return discord
+      }
+    }
   }
 
   if (process.platform === 'darwin') {

@@ -28,7 +28,6 @@
 import type WebSocket from 'ws'
 import type { Deflate } from 'zlib'
 import type { IdentifyPayload } from './types'
-
 import erlpack from 'erlpack'
 import { createDeflate } from 'zlib'
 import { OpCode } from './types.js'
@@ -38,6 +37,8 @@ import { projectData } from '../../util/data.js'
 enum ConnectionState { CONNECTING, CONNECTED, CLOSED }
 
 type Payload = { op: OpCode, d?: unknown, t?: string, s?: number }
+
+const connections: Set<GatewayConnection> = new Set()
 
 // I'll assume the gateway requests etf format and zlib-stream compression - todo: stop assuming before gateway sjw yells at me
 class GatewayConnection {
@@ -63,7 +64,6 @@ class GatewayConnection {
     this.ws.on('message', this.handleMessage.bind(this))
     this.ws.once('close', () => {
       this.state = ConnectionState.CLOSED
-      // eslint-disable-next-line no-use-before-define -- its fine
       connections.delete(this)
     })
 
@@ -150,7 +150,7 @@ class GatewayConnection {
       t: 'READY',
       d: {
         v: 8,
-        analytics_token: 'track.me.daddy',
+        analytics_token: 'track.me.mommy',
         connected_accounts: [], // todo
         consents: { personalization: { consented: false } },
         country_code: 'FR',
@@ -196,8 +196,6 @@ class GatewayConnection {
     })
   }
 }
-
-const connections: Set<GatewayConnection> = new Set()
 
 export function dispatch (evt: string, data: {}): void {
   connections.forEach((conn) => {

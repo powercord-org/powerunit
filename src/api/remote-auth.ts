@@ -26,7 +26,6 @@
  */
 
 import type WebSocket from 'ws'
-
 import { createPublicKey, publicEncrypt, createHash } from 'crypto'
 
 const YEAR = 365 * 24 * 3600e3

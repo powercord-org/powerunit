@@ -27,7 +27,6 @@
 
 import type { DeepPartial, NestedKeysOf } from './types.js'
 import type { PropertyTree } from './misc.js'
-
 import { isObject, deflatten } from './misc.js'
 
 export type Projecton<T extends Record<string, unknown>> = { properties: Array<NestedKeysOf<T>>, delete?: boolean }

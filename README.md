@@ -38,7 +38,6 @@ In the future, I may also introduce a broader support of the API, and who knows 
 unit testing not only your ~~illegal software~~client mod but your bot as well. In the far future, though.
 
 ## Repo structure
- - `src/api`: Mock routes of the Discord API (only has partial and very funky coverage);
- - `src/cli`: Powerunit CLI, brain of the unit test framework;
+ - `src/api`: Mock Discord API (REST, Gateway & Remote Auth) (only has partial and very funky coverage);
  - `src/lib`: Unit testing toolsuite; what the end users have access to;
  - `cert`: Contains a self-signed certificate, since https is required, this is not a security issue;

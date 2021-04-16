@@ -26,7 +26,6 @@
  */
 
 import type { FastifyInstance } from 'fastify'
-
 import auth from './auth.js'
 import users from './users/index.js'
 import applications from './applications.js'

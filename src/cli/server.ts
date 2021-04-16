@@ -28,11 +28,11 @@
 import type { IncomingMessage } from 'http'
 import type { Socket } from 'net'
 
-import { join } from 'path'
-import { readFileSync } from 'fs'
 import { createServer } from 'https'
+import { generateKeyPairSync } from 'crypto'
 import WebSocket from 'ws'
 import fastifyFactory from 'fastify'
+import { CertificateSigningRequest } from '@cyyynthia/jscert'
 
 import rest from '../api/rest.js'
 import gateway from '../api/gateway/index.js'
@@ -43,14 +43,23 @@ export interface ServerInstance {
   close: () => Promise<unknown>
 }
 
+async function makeCert (): Promise<[ string, string ]> {
+  const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 1024 })
+  const csr = new CertificateSigningRequest({ commonName: 'discord.localhost' }, privateKey, { digest: 'sha1' })
+
+  const date = new Date()
+  date.setDate(date.getDate() + 1)
+  date.setMilliseconds(0)
+
+  return [
+    csr.createSelfSignedCertificate(date).toPem(),
+    privateKey.export({ format: 'pem', type: 'pkcs1' }) as string
+  ]
+}
+
 export default async function (): Promise<Readonly<ServerInstance>> {
-  const port = Math.floor((Math.random() * 20000) + 10000)
-  const http = createServer({
-    cert: readFileSync(join(__dirname, '..', '..', 'cert', 'server-cert.pem')),
-    key: readFileSync(join(__dirname, '..', '..', 'cert', 'server-key.pem')),
-    // cert: readFileSync(new URL('../../cert/server-cert.pem', import.meta.url)),
-    // key: readFileSync(new URL('../../cert/server-key.pem', import.meta.url))
-  })
+  const [ cert, key ] = await makeCert()
+  const http = createServer({ cert: cert, key: key })
 
   const fastify = fastifyFactory({ logger: true, serverFactory: (h) => http.on('request', h) })
   const gatewayServer = new WebSocket.Server({ noServer: true })
@@ -72,7 +81,8 @@ export default async function (): Promise<Readonly<ServerInstance>> {
   })
 
   await fastify.ready()
-  await new Promise<void>((resolve) => http.listen(port, () => resolve()))
+  const port = await new Promise<number>((resolve) => http.listen(0, () => resolve((http.address() as { port: number }).port)))
+  console.log(port)
 
   return {
     port: port,

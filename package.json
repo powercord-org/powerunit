@@ -13,6 +13,7 @@
     "node": ">= 14"
   },
   "dependencies": {
+    "@cyyynthia/jscert": "^0.1.2",
     "erlpack": "^0.1.3",
     "fastify": "^3.14.2",
     "node-fetch": "^2.6.1",
@@ -26,8 +27,6 @@
     "@typescript-eslint/eslint-plugin": "^4.21.0",
     "@typescript-eslint/parser": "^4.21.0",
     "eslint": "^7.24.0",
-    "ts-node": "^9.1.1",
-    "tsconfig-paths": "^3.9.0",
     "typescript": "^4.2.4"
   }
 }

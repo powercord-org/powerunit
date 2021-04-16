@@ -26,7 +26,6 @@
  */
 
 import type { FastifyInstance } from 'fastify'
-
 import me from './me.js'
 
 export default async function (fastify: FastifyInstance): Promise<void> {
